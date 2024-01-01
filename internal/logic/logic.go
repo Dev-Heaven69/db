@@ -48,21 +48,35 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 	}
 
 	var resp []models.Payload
+	var apidata [][]string
 	for idx := 1; idx < len(fields); idx++ {
 		parts := strings.Split(fields[idx][5], "/")
 		id := parts[len(parts)-1]
-		data, err := l.service.FindInPep1(ctx, id)
+		data, err := l.service.FindInPep1(ctx, id, fields[idx][2], fields[idx][3], fields[idx][16])
 		if err != nil {
 			return nil, err
 		}
+		if data.Emails == nil {
+
+			suspect := []string{fields[idx][2], fields[idx][3], fields[idx][16]}
+			apidata = append(apidata, suspect)
+		}
+		//
 		resp = append(resp, models.Payload{
 			Emails:    data.Emails,
 			Telephone: data.Telephone,
 		})
 		//2 3 5 16
 	}
-	// utils.CreateCSV(resp, "data/response.csv")
+
+	// fmt.Println("this is apidata",apidata)
+
+	// limiter := rate.NewLimiter(5, 1)
+
+	// datafromAPI := utils.QueryBulkRecords()
+	// fmt.Println("this is datafromAPI", datafromAPI)
+
 	utils.PayloadToCSV(resp, "data/req.csv")
-	utils.SendCSVToWebhook("http://n8n.leadzenai.co/webhook-test/ewH5SNa0IhYTsyZi/webhook1/receive-csv")
+	// utils.SendCSVToWebhook("http://n8n.leadzenai.co/webhook-test/ewH5SNa0IhYTsyZi/webhook1/receive-csv")
 	return resp, nil
 }

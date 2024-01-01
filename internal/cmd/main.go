@@ -9,7 +9,6 @@ import (
 	"github.com/DevHeaven/db/internal/dbi"
 	"github.com/DevHeaven/db/internal/logic"
 	"github.com/DevHeaven/db/internal/router"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

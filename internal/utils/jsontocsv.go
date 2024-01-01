@@ -68,22 +68,20 @@ func convertPayloadToCSV(data []models.Payload) [][]string {
 		rows = append(rows, []string{"", ""}) // append blanks
 		return rows
 	}
-    
+
 	for _, payload := range data {
 		var email, tel string
 		// Check if payload is empty
 		if payload.Emails == nil && payload.Telephone == nil {
 			rows = append(rows, []string{"", ""}) // append blanks
 		} else {
-			for i := range payload.Emails {
-				if i < len(payload.Emails) {
-					email = payload.Emails[i]
-				}
-				if i < len(payload.Telephone) {
-					tel = payload.Telephone[i]
-				}
-				rows = append(rows, []string{email, tel})
+			if len(payload.Emails) > 0 {
+				email = payload.Emails[0]
+			} 
+			if len(payload.Telephone) > 0 {
+				tel = payload.Telephone[0]
 			}
+			rows = append(rows, []string{email, tel})
 		}
 	}
 	return rows

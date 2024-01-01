@@ -1,8 +1,8 @@
 package models
 
 type Pep1Response struct {
-	Emails    []string `bson:"e,omitempty" bson:"emails,omitempty"`
-	Telephone []string `bson:"t,omitempty" bson:"phone_numbers,omitempty"`
+	Emails    []string `bson:"e,omitempty" `
+	Telephone []string `bson:"t,omitempty"`
 }
 
 // type UseResponse struct {

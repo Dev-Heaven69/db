@@ -27,7 +27,7 @@ func (s *Server) Run() error {
 		s.router.Health(ctx)
 	})
 
-	s.Engine.POST("/pep1", func(ctx *gin.Context) {
+	s.Engine.POST("/en", func(ctx *gin.Context) {
 		s.router.Pep1(ctx)
 	})
 

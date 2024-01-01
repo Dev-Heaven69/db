@@ -63,8 +63,10 @@ func NewMongoRepository(dbUri, dbName string, timeout int) (Storage, error) {
 	return repo, nil
 }
 
+var nhi int = 0
+
 // FindInPep1 finds a document in the "pep1" collection based on LinkedIn identifier
-func (s *Storage) FindInPep1(ctx context.Context, linkedInID string) (models.Payload, error) {
+func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
 	// pep1Data := models.Pep1Response{}
 	// useData := models.UseResponse{}
 	resp := models.Payload{}
@@ -92,10 +94,11 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string) (models.Pay
 	// }
 
 	queries := []Query{
+		// {Collection: "ap1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "pep1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "use", Filter: bson.D{{"linkedin_username", linkedInID}}, Projection: bson.D{{"emails", 1}, {"phone_numbers", 1}}},
-		{Collection: "use1", Filter: bson.D{{"linkedin_username", linkedInID}}, Projection: bson.D{{"emails", 1}, {"phone_numbers", 1}}},
-		{Collection: "use2", Filter: bson.D{{"linkedin_username", linkedInID}}, Projection: bson.D{{"emails", 1}, {"phone_numbers", 1}}},
+		{Collection: "use", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "use1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "use2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
 
 	var wg sync.WaitGroup
@@ -144,10 +147,11 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string) (models.Pay
 			case err := <-errChan:
 				log.Fatal("Error finding document: ", err)
 			case result := <-resultChan:
-				fmt.Println("Document found: ", result)
 				resp = models.Payload(result)
 				return
 			case <-doneChan:
+				nhi++
+				fmt.Println(nhi)
 				return
 			}
 		}

@@ -8,12 +8,12 @@ import (
 
 type Service interface {
 	// Get a single document from the database
-	FindInPep1(ctx context.Context, linkedInID string) (models.Payload, error)
+	FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error)
 }
 
 type Storage interface {
 	// Get a single document from the database
-	FindInPep1(ctx context.Context, linkedInID string) (models.Payload, error)
+	FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error)
 }
 
 type service struct {
@@ -26,7 +26,7 @@ func NewService(repo Storage) Service {
 	}
 }
 
-func (s *service) FindInPep1(ctx context.Context, linkedInID string) (models.Payload, error) {
-	resp, err := s.repo.FindInPep1(ctx, linkedInID)
+func (s *service) FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
+	resp, err := s.repo.FindInPep1(ctx, linkedInID, firstname, lastname, domain)
 	return resp, err
 }
