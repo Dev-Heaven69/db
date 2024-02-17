@@ -77,6 +77,6 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 	// fmt.Println("this is datafromAPI", datafromAPI)
 
 	utils.PayloadToCSV(resp, "data/req.csv")
-	// utils.SendCSVToWebhook("http://n8n.leadzenai.co/webhook-test/ewH5SNa0IhYTsyZi/webhook1/receive-csv")
+	utils.SendCSVToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-csv")
 	return resp, nil
 }
