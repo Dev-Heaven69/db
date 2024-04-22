@@ -83,14 +83,14 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Re
 		if err != nil {
 			return models.Response{}, err
 		}
-		utils.SendToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-json",filename, ctx.PostForm("responseType"))
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich",filename, ctx.PostForm("responseType"))
 	}
 	if ctx.PostForm("responseType") == "csv"{
 		filename,err = utils.PayloadToCSV(apiResponse, "data/req.csv")
 		if err != nil {
 			return models.Response{}, err
 		}
-		utils.SendToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-csv",filename, ctx.PostForm("responseType"))	
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich",filename, ctx.PostForm("responseType"))	
 	}
 	return apiResponse, nil
 }

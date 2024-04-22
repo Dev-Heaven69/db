@@ -4,11 +4,12 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/DevHeaven/db/domain/models"
 )
 
-func PayloadToCSV(data models.Response, filename string) (string,error ){
+func PayloadToCSV(data models.Response, filename string) (string, error) {
 	// Convert Payload data to CSV format
 	resqueteeEmail := data.ResquesteeEmail
 	csvData := convertPayloadToCSV(data.Data)
@@ -18,7 +19,7 @@ func PayloadToCSV(data models.Response, filename string) (string,error ){
 	file, err := os.OpenFile(filename, os.O_RDWR, 0755)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)
-		return "",err
+		return "", err
 	}
 	defer file.Close()
 
@@ -27,7 +28,7 @@ func PayloadToCSV(data models.Response, filename string) (string,error ){
 	lines, err := reader.ReadAll()
 	if err != nil {
 		fmt.Println("Cannot read file:", err)
-		return "",err
+		return "", err
 	}
 
 	// Close the file to clear the file descriptor for the upcoming write operation
@@ -45,11 +46,11 @@ func PayloadToCSV(data models.Response, filename string) (string,error ){
 	}
 
 	// Overwrite file with the new data
-	newFilename := fmt.Sprintf("data/response_%s.csv", resqueteeEmail)
+	newFilename := fmt.Sprintf("data/response_%s%s.csv", resqueteeEmail, time.Now())
 	newfile, err := os.Create(newFilename)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)
-		return "",err
+		return "", err
 	}
 	defer newfile.Close()
 
@@ -62,7 +63,7 @@ func PayloadToCSV(data models.Response, filename string) (string,error ){
 	}
 
 	fmt.Printf("Payload appended successfully to %s!\n", newFilename)
-	return newFilename,nil
+	return newFilename, nil
 }
 
 func convertPayloadToCSV(data []models.Payload) [][]string {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/DevHeaven/db/domain/models"
 )
@@ -15,7 +16,7 @@ func WriteResponseToJson(response models.Response) (string, error) {
 		return "",fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	var filename = fmt.Sprintf("data/response_%s.json", response.ResquesteeEmail)
+	var filename = fmt.Sprintf("data/response_%s%s.json", response.ResquesteeEmail, time.Now())
 
 	// Create a file to write the JSON data
 	file, err := os.Create(filename)

@@ -24,9 +24,17 @@ func SendToWebhook(url string,filename string,responseType string) {
 
 	// Create a multipart writer
 	multiPartWriter := multipart.NewWriter(&requestBody)
+	var apifile string
+	if responseType == "csv" {
+		apifile = "response.csv"
+	}
+	if responseType == "json" {
+		apifile = "response.json"
+	}
+
 
 	// Create a new form-data header
-	fileWriter, err := multiPartWriter.CreateFormFile("file", "response.csv")
+	fileWriter, err := multiPartWriter.CreateFormFile("file", apifile)
 	if err != nil {
 		fmt.Println("Cannot create form file:", err)
 		return
