@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/DevHeaven/db/domain/models"
@@ -21,7 +22,7 @@ func (r Router) Health(c *gin.Context) {
 }
 
 func (r Router) Pep1(c *gin.Context) {
-	var req models.CSVRequest
+	var req models.Request
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -38,6 +39,7 @@ func (r Router) Pep1(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	log.Println("response: ", resp)
 
 	c.JSON(http.StatusOK, resp)
 }

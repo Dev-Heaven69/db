@@ -20,7 +20,7 @@ func ProvideLogic(service dbi.Service) Logic {
 	return Logic{service: service}
 }
 
-func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.Payload, error) {
+func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Response, error) {
 	uploadPath := "./data/"
 	filename := "req.csv"
 
@@ -28,11 +28,11 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 
 	err := ctx.SaveUploadedFile(file, filepath)
 	if err != nil {
-		return nil, err
+		return models.Response{}, err
 	}
 	csvFile, err := os.Open(filepath)
 	if err != nil {
-		return nil, err
+		return models.Response{}, err
 	}
 	defer csvFile.Close()
 
@@ -54,7 +54,7 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 		id := parts[len(parts)-1]
 		data, err := l.service.FindInPep1(ctx, id, fields[idx][2], fields[idx][3], fields[idx][16])
 		if err != nil {
-			return nil, err
+			return models.Response{}, err
 		}
 		if data.Emails == nil {
 
@@ -75,8 +75,22 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 
 	// datafromAPI := utils.QueryBulkRecords()
 	// fmt.Println("this is datafromAPI", datafromAPI)
-
-	utils.PayloadToCSV(resp, "data/req.csv")
-	utils.SendCSVToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-csv")
-	return resp, nil
+	var apiResponse models.Response
+	apiResponse.Data = resp
+	apiResponse.ResquesteeEmail = string(ctx.PostForm("email"))
+	if ctx.PostForm("responseType") == "json"{
+		filename,err = utils.WriteResponseToJson(apiResponse)
+		if err != nil {
+			return models.Response{}, err
+		}
+		utils.SendToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-json",filename, ctx.PostForm("responseType"))
+	}
+	if ctx.PostForm("responseType") == "csv"{
+		filename,err = utils.PayloadToCSV(apiResponse, "data/req.csv")
+		if err != nil {
+			return models.Response{}, err
+		}
+		utils.SendToWebhook("http://n8n.leadzenai.co/webhook/ewH5SNa0IhYTsyZi/webhook1/receive-csv",filename, ctx.PostForm("responseType"))	
+	}
+	return apiResponse, nil
 }

@@ -9,9 +9,10 @@ import (
 	"os"
 )
 
-func SendCSVToWebhook(url string) {
+func SendToWebhook(url string,filename string,responseType string) {
 	// Open the CSV file
-	file, err := os.Open("data/response.csv")
+	filepath := fmt.Sprintf("data/%s", filename)
+	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)
 		return
@@ -60,3 +61,37 @@ func SendCSVToWebhook(url string) {
 		fmt.Println("File upload response status:", response.Status)
 	}
 }
+
+// func SendJSONToWebhook(url string,filename string) {
+// 	// Open the JSON file
+// 	filepath := fmt.Sprintf("data/%s", filename)
+// 	file, err := os.Open(filepath)
+// 	if err != nil {
+// 		fmt.Println("Cannot open file:", err)
+// 		return
+// 	}
+// 	defer file.Close()
+	
+// 	// Create a buffer to store our request body as bytes
+// 	var requestBody bytes.Buffer
+
+// 	// Copy the file into the requestBody
+// 	_, err = io.Copy(&requestBody, file)
+// 	if err != nil {
+// 		fmt.Println("Cannot write to file:", err)
+// 		return
+// 	}
+
+// 	// Create a new http request with the requestBody
+// 	request, err := http.NewRequest("POST", url, &requestBody)
+// 	if err != nil {
+// 		fmt.Println("Cannot create request:", err)
+// 		return
+// 	}
+
+// 	// Set the content type, this is very important
+// 	request.Header.Set("Content-Type", "application/json")
+	
+// 	// Send the request
+// 	client := &http.Client{}
+

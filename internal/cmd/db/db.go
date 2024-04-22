@@ -71,30 +71,8 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 	// useData := models.UseResponse{}
 	resp := models.Payload{}
 
-	// collection := s.client.Database(s.dbName).Collection("pep1")
-	// filter := bson.M{"liid": linkedInID}
-	// projection := bson.D{{"e", 1}, {"t", 1}}
-	// err := collection.FindOne(ctx, filter, options.FindOne().SetProjection(projection)).Decode(&pep1Data)
-	// resp = models.Payload(pep1Data)
-	// if err != nil {
-	// 	if err == mongo.ErrNoDocuments {
-	// 		collection = s.client.Database(s.dbName).Collection("use")
-	// 		filter = bson.M{"linkedin_username": linkedInID}
-	// 		projection = bson.D{{"emails", 1}, {"phone_numbers", 1}}
-	// 		err = collection.FindOne(ctx, filter, options.FindOne().SetProjection(projection)).Decode(&useData)
-	// 		resp.Emails = useData.Emails
-	// 		resp.Telephone = useData.Telephone
-	// 		if err != nil {
-	// 			if err == mongo.ErrNoDocuments {
-	// 				nullcounter++
-	// 				fmt.Println(nullcounter)
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	queries := []Query{
-		{Collection: "ap1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "pep1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
