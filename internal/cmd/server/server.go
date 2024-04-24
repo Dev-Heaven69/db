@@ -27,8 +27,12 @@ func (s *Server) Run() error {
 		s.router.Health(ctx)
 	})
 
-	s.Engine.POST("/en", func(ctx *gin.Context) {
+	s.Engine.POST("/scandb", func(ctx *gin.Context) {
 		s.router.Pep1(ctx)
+	})
+
+	s.Engine.POST("/changewebhook", func(ctx *gin.Context) {
+		s.router.ChangeWebhook(ctx)
 	})
 
 	return s.Engine.Run(s.port)

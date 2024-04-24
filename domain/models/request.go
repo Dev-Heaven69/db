@@ -29,3 +29,6 @@ type ApiResponse struct {
 	Email string `json:"email"`
 }
 
+type ChangeWebhookRequest struct {
+	URL string `json:"url" binding:"required"`
+}

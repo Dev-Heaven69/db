@@ -2,6 +2,7 @@ package logic
 
 import (
 	"encoding/csv"
+	"fmt"
 	"mime/multipart"
 	"os"
 	"strings"
@@ -23,6 +24,8 @@ func ProvideLogic(service dbi.Service) Logic {
 func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.Payload, error) {
 	uploadPath := "./data/"
 	filename := "req.csv"
+	webhook := os.Getenv("WEBHOOK_URL")
+	fmt.Println("this is webhook", webhook)
 
 	filepath := uploadPath + filename
 
@@ -77,18 +80,31 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 	// fmt.Println("this is datafromAPI", datafromAPI)
 
 	if ctx.PostForm("responseType") == "json" {
-		filename, err = utils.WriteResponseToJson(resp,ctx.PostForm("email"))
+		_, err = utils.WriteResponseToJson(resp, ctx.PostForm("email"))
 		if err != nil {
 			return nil, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"),ctx.PostForm("email"),ctx.PostForm("discordUsername"))
 	}
+
 	if ctx.PostForm("responseType") == "csv" {
-		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
+		_, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
 		if err != nil {
 			return nil, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"),ctx.PostForm("email"),ctx.PostForm("discordUsername"))
 	}
+
+	utils.SendToWebhook(os.Getenv("WEBHOOK_URL"), resp, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
 	return resp, nil
+}
+
+func (l Logic) ChangeWebhook(url string) error {
+	err := os.Setenv("WEBHOOK_URL", url)
+	if err != nil {
+		fmt.Println("Error setting WEBHOOK_URL")
+		return err
+	}
+
+	fmt.Println("WEBHOOK_URL updated successfully.")
+
+	return nil
 }

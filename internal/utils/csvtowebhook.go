@@ -2,76 +2,53 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
-	"mime/multipart"
+	"io/ioutil"
 	"net/http"
-	"os"
+
+	"github.com/DevHeaven/db/domain/models"
 )
 
-func SendToWebhook(url string,filename string,responseType string, requesteeEmail string, discordUsername string) {
-	// Open the CSV file
-	file, err := os.Open(filename)
+func SendToWebhook(url string, resp []models.Payload, requesteeEmail string, discordUsername string) error {
+	// Marshal the response data into JSON
+	jsonData, err := json.Marshal(resp)
 	if err != nil {
-		fmt.Println("Cannot open file:", err)
-		return
-	}
-	defer file.Close()
-
-	fmt.Println("FILE OPENED NOW SENDING TO WEBHOOK")
-	// Create a buffer to store our request body as bytes
-	var requestBody bytes.Buffer
-
-	// Create a multipart writer
-	multiPartWriter := multipart.NewWriter(&requestBody)
-	var apifile string
-	if responseType == "csv" {
-		apifile = "response.csv"
-		fmt.Println("RESPONSE TYPE IS CSV")
-	}
-	if responseType == "json" {
-		apifile = "response.json"
+		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
 
+	// Create an io.Reader from the JSON data
+	requestBody := bytes.NewReader(jsonData)
 
-	// Create a new form-data header
-	fileWriter, err := multiPartWriter.CreateFormFile("file", apifile)
+	// Create the HTTP request
+	request, err := http.NewRequest("POST", url, requestBody)
 	if err != nil {
-		fmt.Println("Cannot create form file:", err)
-		return
+		return fmt.Errorf("cannot create request: %w", err)
 	}
 
-	// Copy the file into the fileWriter
-	_, err = io.Copy(fileWriter, file)
-	if err != nil {
-		fmt.Println("Cannot write to file:", err)
-		return
-	}
-
-	// Close the multipart writer to get the terminating boundary.
-	multiPartWriter.Close()
-
-	// Create a new http request with the requestBody
-	request, err := http.NewRequest("POST", url, &requestBody)
-	if err != nil {
-		fmt.Println("Cannot create request:", err)
-		return
-	}
-
-	// Set the content type, this is very important
-	request.Header.Set("Content-Type", multiPartWriter.FormDataContentType())
+	// Set the necessary headers
+	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("X-REQUESTEE-EMAIL", requesteeEmail)
 	request.Header.Set("X-DISCORD-USERNAME", discordUsername)
 
-	// Send the request
-	fmt.Println("MAKING API CALL")
+	// Send the request using a new HTTP client
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		fmt.Println("Failed to send request:", err)
-	} else {
-		fmt.Println("File upload response status:", response.Status)
+		return fmt.Errorf("failed to send request: %w", err)
 	}
+	defer response.Body.Close() // Ensure the response body is closed
+
+	// Optional: Read and log the response body for debugging
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	fmt.Println("API Call Made, Response Status:", response.Status)
+	fmt.Println("Response Body:", string(body))
+
+	return nil
 }
 
 // func SendJSONToWebhook(url string,filename string) {
@@ -83,7 +60,7 @@ func SendToWebhook(url string,filename string,responseType string, requesteeEmai
 // 		return
 // 	}
 // 	defer file.Close()
-	
+
 // 	// Create a buffer to store our request body as bytes
 // 	var requestBody bytes.Buffer
 
@@ -103,7 +80,6 @@ func SendToWebhook(url string,filename string,responseType string, requesteeEmai
 
 // 	// Set the content type, this is very important
 // 	request.Header.Set("Content-Type", "application/json")
-	
+
 // 	// Send the request
 // 	client := &http.Client{}
-
