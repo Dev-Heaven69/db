@@ -78,19 +78,19 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Re
 	var apiResponse models.Response
 	apiResponse.Data = resp
 	apiResponse.ResquesteeEmail = string(ctx.PostForm("email"))
-	if ctx.PostForm("responseType") == "json"{
-		filename,err = utils.WriteResponseToJson(apiResponse)
+	if ctx.PostForm("responseType") == "json" {
+		filename, err = utils.WriteResponseToJson(apiResponse)
 		if err != nil {
 			return models.Response{}, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich",filename, ctx.PostForm("responseType"))
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"))
 	}
-	if ctx.PostForm("responseType") == "csv"{
-		filename,err = utils.PayloadToCSV(apiResponse, "data/req.csv")
+	if ctx.PostForm("responseType") == "csv" {
+		filename, err = utils.PayloadToCSV(apiResponse, "data/req.csv")
 		if err != nil {
 			return models.Response{}, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich",filename, ctx.PostForm("responseType"))	
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"))
 	}
 	return apiResponse, nil
 }

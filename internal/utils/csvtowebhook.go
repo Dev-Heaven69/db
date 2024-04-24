@@ -11,14 +11,14 @@ import (
 
 func SendToWebhook(url string,filename string,responseType string) {
 	// Open the CSV file
-	filepath := fmt.Sprintf("data/%s", filename)
-	file, err := os.Open(filepath)
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)
 		return
 	}
 	defer file.Close()
 
+	fmt.Println("FILE OPENED NOW SENDING TO WEBHOOK")
 	// Create a buffer to store our request body as bytes
 	var requestBody bytes.Buffer
 
@@ -27,6 +27,7 @@ func SendToWebhook(url string,filename string,responseType string) {
 	var apifile string
 	if responseType == "csv" {
 		apifile = "response.csv"
+		fmt.Println("RESPONSE TYPE IS CSV")
 	}
 	if responseType == "json" {
 		apifile = "response.json"
@@ -61,6 +62,7 @@ func SendToWebhook(url string,filename string,responseType string) {
 	request.Header.Set("Content-Type", multiPartWriter.FormDataContentType())
 
 	// Send the request
+	fmt.Println("MAKING API CALL")
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {

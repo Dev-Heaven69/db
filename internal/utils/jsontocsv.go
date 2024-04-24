@@ -46,7 +46,7 @@ func PayloadToCSV(data models.Response, filename string) (string, error) {
 	}
 
 	// Overwrite file with the new data
-	newFilename := fmt.Sprintf("data/response_%s%s.csv", resqueteeEmail, time.Now())
+	newFilename := fmt.Sprintf("data/response_%s%v.csv", resqueteeEmail, time.Now().Unix())
 	newfile, err := os.Create(newFilename)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)

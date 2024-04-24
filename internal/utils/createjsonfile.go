@@ -16,7 +16,7 @@ func WriteResponseToJson(response models.Response) (string, error) {
 		return "",fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	var filename = fmt.Sprintf("data/response_%s%s.json", response.ResquesteeEmail, time.Now())
+	var filename = fmt.Sprintf("data/response_%s%v.json", response.ResquesteeEmail, time.Now().Unix())
 
 	// Create a file to write the JSON data
 	file, err := os.Create(filename)
