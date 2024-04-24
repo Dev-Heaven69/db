@@ -9,14 +9,14 @@ import (
 	"github.com/DevHeaven/db/domain/models"
 )
 
-func WriteResponseToJson(response models.Response) (string, error) {
+func WriteResponseToJson(response []models.Payload,requesteeEmail string) (string, error) {
 	// Marshal the Response struct to JSON
 	data, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
 		return "",fmt.Errorf("error marshaling to JSON: %v", err)
 	}
 
-	var filename = fmt.Sprintf("data/response_%s%v.json", response.ResquesteeEmail, time.Now().Unix())
+	var filename = fmt.Sprintf("data/response_%s%v.json", requesteeEmail , time.Now().Unix())
 
 	// Create a file to write the JSON data
 	file, err := os.Create(filename)

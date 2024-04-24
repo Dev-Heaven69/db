@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func SendToWebhook(url string,filename string,responseType string) {
+func SendToWebhook(url string,filename string,responseType string, requesteeEmail string, discordUsername string) {
 	// Open the CSV file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -60,6 +60,8 @@ func SendToWebhook(url string,filename string,responseType string) {
 
 	// Set the content type, this is very important
 	request.Header.Set("Content-Type", multiPartWriter.FormDataContentType())
+	request.Header.Set("X-REQUESTEE-EMAIL", requesteeEmail)
+	request.Header.Set("X-DISCORD-USERNAME", discordUsername)
 
 	// Send the request
 	fmt.Println("MAKING API CALL")

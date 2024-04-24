@@ -29,7 +29,3 @@ type ApiResponse struct {
 	Email string `json:"email"`
 }
 
-type Response struct {
-	Data []Payload `json:"data"`
-	ResquesteeEmail string `json:"requesteeEmail"`
-}

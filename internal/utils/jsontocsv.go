@@ -9,10 +9,9 @@ import (
 	"github.com/DevHeaven/db/domain/models"
 )
 
-func PayloadToCSV(data models.Response, filename string) (string, error) {
+func PayloadToCSV(data []models.Payload, filename string, requesteeEmail string) (string, error) {
 	// Convert Payload data to CSV format
-	resqueteeEmail := data.ResquesteeEmail
-	csvData := convertPayloadToCSV(data.Data)
+	csvData := convertPayloadToCSV(data)
 	// csvData := convertPayloadToCSV(data)
 
 	// Open existing file
@@ -46,7 +45,7 @@ func PayloadToCSV(data models.Response, filename string) (string, error) {
 	}
 
 	// Overwrite file with the new data
-	newFilename := fmt.Sprintf("data/response_%s%v.csv", resqueteeEmail, time.Now().Unix())
+	newFilename := fmt.Sprintf("data/response_%s%v.csv", requesteeEmail, time.Now().Unix())
 	newfile, err := os.Create(newFilename)
 	if err != nil {
 		fmt.Println("Cannot open file:", err)

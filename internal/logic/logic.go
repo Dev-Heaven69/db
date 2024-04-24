@@ -20,7 +20,7 @@ func ProvideLogic(service dbi.Service) Logic {
 	return Logic{service: service}
 }
 
-func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Response, error) {
+func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.Payload, error) {
 	uploadPath := "./data/"
 	filename := "req.csv"
 
@@ -28,11 +28,11 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Re
 
 	err := ctx.SaveUploadedFile(file, filepath)
 	if err != nil {
-		return models.Response{}, err
+		return nil, err
 	}
 	csvFile, err := os.Open(filepath)
 	if err != nil {
-		return models.Response{}, err
+		return nil, err
 	}
 	defer csvFile.Close()
 
@@ -54,7 +54,7 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Re
 		id := parts[len(parts)-1]
 		data, err := l.service.FindInPep1(ctx, id, fields[idx][2], fields[idx][3], fields[idx][16])
 		if err != nil {
-			return models.Response{}, err
+			return nil, err
 		}
 		if data.Emails == nil {
 
@@ -75,22 +75,20 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) (models.Re
 
 	// datafromAPI := utils.QueryBulkRecords()
 	// fmt.Println("this is datafromAPI", datafromAPI)
-	var apiResponse models.Response
-	apiResponse.Data = resp
-	apiResponse.ResquesteeEmail = string(ctx.PostForm("email"))
+
 	if ctx.PostForm("responseType") == "json" {
-		filename, err = utils.WriteResponseToJson(apiResponse)
+		filename, err = utils.WriteResponseToJson(resp,ctx.PostForm("email"))
 		if err != nil {
-			return models.Response{}, err
+			return nil, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"))
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"),ctx.PostForm("email"),ctx.PostForm("discordUsername"))
 	}
 	if ctx.PostForm("responseType") == "csv" {
-		filename, err = utils.PayloadToCSV(apiResponse, "data/req.csv")
+		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
 		if err != nil {
-			return models.Response{}, err
+			return nil, err
 		}
-		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"))
+		utils.SendToWebhook("https://n8n.automationapp.co/webhook/enrich", filename, ctx.PostForm("responseType"),ctx.PostForm("email"),ctx.PostForm("discordUsername"))
 	}
-	return apiResponse, nil
+	return resp, nil
 }
