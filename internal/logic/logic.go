@@ -62,7 +62,7 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 		if data.Emails == nil {
 
 			suspect := []string{fields[idx][2], fields[idx][3], fields[idx][16]}
-			apidata = append(apidata, suspect)
+			_ = append(apidata, suspect)
 		}
 		//
 		resp = append(resp, models.Payload{
@@ -80,20 +80,20 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 	// fmt.Println("this is datafromAPI", datafromAPI)
 
 	if ctx.PostForm("responseType") == "json" {
-		_, err = utils.WriteResponseToJson(resp, ctx.PostForm("email"))
+		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"))
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if ctx.PostForm("responseType") == "csv" {
-		_, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	utils.SendToWebhook(os.Getenv("WEBHOOK_URL"), resp, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
+	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
 	return resp, nil
 }
 

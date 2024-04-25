@@ -2,19 +2,53 @@ package utils
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/DevHeaven/db/domain/models"
+	"os"
+	"strings"
 )
 
-func SendToWebhook(url string, resp []models.Payload, requesteeEmail string, discordUsername string) error {
-	// Marshal the response data into JSON
-	jsonData, err := json.Marshal(resp)
-	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
+func SendFileToWebhook(url, filePath, requesteeEmail, discordUsername string) error {
+	// Determine the file type based on its extension
+	var data interface{}
+	var jsonData []byte
+	var err error
+
+	if strings.HasSuffix(filePath, ".json") {
+		// Read JSON file
+		jsonData, err = ioutil.ReadFile(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to read JSON file: %w", err)
+		}
+		// Unmarshal into a generic interface; adjust to specific type as needed
+		err = json.Unmarshal(jsonData, &data)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal JSON: %w", err)
+		}
+	} else if strings.HasSuffix(filePath, ".csv") {
+		// Read CSV file and convert to JSON
+		file, err := os.Open(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to open CSV file: %w", err)
+		}
+		defer file.Close()
+		reader := csv.NewReader(file)
+		records, err := reader.ReadAll()
+		if err != nil {
+			return fmt.Errorf("failed to read CSV records: %w", err)
+		}
+
+		// Convert CSV records to JSON
+		data = records 
+		jsonData, err = json.Marshal(data)
+		if err != nil {
+			return fmt.Errorf("failed to marshal records to JSON: %w", err)
+		}
+	} else {
+		return fmt.Errorf("unsupported file type")
 	}
 
 	// Create an io.Reader from the JSON data
@@ -50,36 +84,3 @@ func SendToWebhook(url string, resp []models.Payload, requesteeEmail string, dis
 
 	return nil
 }
-
-// func SendJSONToWebhook(url string,filename string) {
-// 	// Open the JSON file
-// 	filepath := fmt.Sprintf("data/%s", filename)
-// 	file, err := os.Open(filepath)
-// 	if err != nil {
-// 		fmt.Println("Cannot open file:", err)
-// 		return
-// 	}
-// 	defer file.Close()
-
-// 	// Create a buffer to store our request body as bytes
-// 	var requestBody bytes.Buffer
-
-// 	// Copy the file into the requestBody
-// 	_, err = io.Copy(&requestBody, file)
-// 	if err != nil {
-// 		fmt.Println("Cannot write to file:", err)
-// 		return
-// 	}
-
-// 	// Create a new http request with the requestBody
-// 	request, err := http.NewRequest("POST", url, &requestBody)
-// 	if err != nil {
-// 		fmt.Println("Cannot create request:", err)
-// 		return
-// 	}
-
-// 	// Set the content type, this is very important
-// 	request.Header.Set("Content-Type", "application/json")
-
-// 	// Send the request
-// 	client := &http.Client{}
