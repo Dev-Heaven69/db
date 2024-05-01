@@ -31,6 +31,18 @@ func (s *Server) Run() error {
 		s.router.Pep1(ctx)
 	})
 
+	s.Engine.POST("/getPersonalEmail", func(ctx *gin.Context) {
+		s.router.GetPersonalEmail(ctx)
+	})
+
+	s.Engine.POST("/getProfessionalEmails", func(ctx *gin.Context) {
+		s.router.GetProfessionalEmails(ctx)
+	})
+	s.Engine.POST("/getBothEmails", func(ctx *gin.Context) {
+		s.router.GetBothEmails(ctx)
+	})
+
+
 	s.Engine.POST("/changewebhook", func(ctx *gin.Context) {
 		s.router.ChangeWebhook(ctx)
 	})
