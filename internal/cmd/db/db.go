@@ -76,6 +76,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 		{Collection: "use", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
 
 	var wg sync.WaitGroup
@@ -146,6 +147,7 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, first
         {Collection: "use", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
     }
 
     var wg sync.WaitGroup
@@ -211,7 +213,9 @@ func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string) 
         {Collection: "use", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
     }
+
 
     var wg sync.WaitGroup
     resultChan := make(chan models.Pep1Response)
