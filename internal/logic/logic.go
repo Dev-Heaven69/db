@@ -78,14 +78,14 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 	// fmt.Println("this is datafromAPI", datafromAPI)
 
 	if ctx.PostForm("responseType") == "json" {
-		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"),"scan")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if ctx.PostForm("responseType") == "csv" {
-		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"), "scan")
 		if err != nil {
 			return nil, err
 		}
@@ -160,14 +160,14 @@ func (l Logic) GetPersonalEmail(file *multipart.FileHeader, ctx *gin.Context) ([
 	}
 
 	if ctx.PostForm("responseType") == "json" {
-		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"),"personal")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if ctx.PostForm("responseType") == "csv" {
-		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"), "personal")
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +213,7 @@ func (l Logic) GetProfessionalEmail(file *multipart.FileHeader, ctx *gin.Context
 		parts := strings.Split(fields[idx][5], "/")
 		id := parts[len(parts)-1]
 
-		data, err := l.service.FindInPep1(ctx, id, fields[idx][2], fields[idx][3], fields[idx][16])
+		data, err := l.service.GetProfessionalEmails(ctx, id, fields[idx][2], fields[idx][3], fields[idx][16])
 		if err != nil {
 			return nil, err
 		}
@@ -232,14 +232,14 @@ func (l Logic) GetProfessionalEmail(file *multipart.FileHeader, ctx *gin.Context
 	}
 
 	if ctx.PostForm("responseType") == "json" {
-		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"),"professional")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if ctx.PostForm("responseType") == "csv" {
-		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"))
+		filename, err = utils.PayloadToCSV(resp, "data/req.csv", ctx.PostForm("email"), "professional")
 		if err != nil {
 			return nil, err
 		}

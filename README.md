@@ -1,4 +1,4 @@
-# Dns LookUp Application
+# DB Application
 
 # Dependencies
 

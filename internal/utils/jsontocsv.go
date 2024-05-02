@@ -10,9 +10,18 @@ import (
 	"github.com/DevHeaven/db/domain/models"
 )
 
-func PayloadToCSV(data []models.Payload, filename string, requesteeEmail string) (string, error) {
+func PayloadToCSV(data []models.Payload, filename string, requesteeEmail string, emails string) (string, error) {
 	// Convert Payload data to CSV format
-	csvData := convertPayloadToCSV(data)
+	var csvData [][]string
+	if emails == "personal" {
+		csvData = convertPayloadToCSVForPersonal(data)
+	}
+	if emails == "professional" {
+		csvData = convertPayloadToCSVForProfessional(data)
+	}
+	if emails == "scan" {
+		csvData = convertPayloadToCSV(data)
+	}
 	// csvData := convertPayloadToCSV(data)
 
 	// Open existing file
@@ -92,6 +101,74 @@ func convertPayloadToCSV(data []models.Payload) [][]string {
 	return rows
 }
 
+func convertPayloadToCSVForPersonal(data []models.Payload) [][]string {
+	var rows [][]string
+	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me", "@outlook.com", "@protonmail.com", "hotmail.com", "yahoo.com"}
+
+	if len(data) == 0 {
+		// If no data, append blank rows for columns "PersonalEmails" and "ProfessionalEmails"
+		rows = append(rows, []string{"", "", ""}) // assuming we still need the telephone column
+		return rows
+	}
+
+	for _, payload := range data {
+		var personalEmails, tel string
+
+		for _, email := range payload.Emails {
+			for _, suffix := range personalSuffixes {
+				if strings.HasSuffix(email, suffix) {
+					personalEmails = email
+					break
+				}
+			}
+		}
+
+		if len(payload.Telephone) > 0 {
+			tel = payload.Telephone[0]
+		}
+
+		rows = append(rows, []string{personalEmails, tel})
+	}
+
+	return rows
+}
+
+func convertPayloadToCSVForProfessional(data []models.Payload) [][]string {
+	var rows [][]string
+	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me", "@outlook.com", "@protonmail.com", "hotmail.com", "yahoo.com"}
+
+	if len(data) == 0 {
+		// If no data, append blank rows for columns "PersonalEmails" and "ProfessionalEmails"
+		rows = append(rows, []string{"", "", ""}) // assuming we still need the telephone column
+		return rows
+	}
+
+	for _, payload := range data {
+		var  professionalEmails, tel string
+
+		for _, email := range payload.Emails {
+			isPersonal := false
+			for _, suffix := range personalSuffixes {
+				if strings.HasSuffix(email, suffix) {
+					isPersonal = true
+					break
+				}
+			}
+			if !isPersonal && professionalEmails == "" {
+				professionalEmails = email
+			}
+		}
+
+		if len(payload.Telephone) > 0 {
+			tel = payload.Telephone[0]
+		}
+
+		rows = append(rows, []string{professionalEmails, tel})
+	}
+
+	return rows	
+}
+
 func PayloadToCSVforFiltering(data []models.Payload, filename string, requesteeEmail string) (string, error) {
 	// Convert Payload data to CSV format
 	csvData := convertPayloadToCSVforFiltering(data)
@@ -149,7 +226,7 @@ func PayloadToCSVforFiltering(data []models.Payload, filename string, requesteeE
 
 func convertPayloadToCSVforFiltering(data []models.Payload) [][]string {
 	var rows [][]string
-	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me"}
+	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me", "@outlook.com", "@protonmail.com", "hotmail.com", "yahoo.com"}
 
 	if len(data) == 0 {
 		// If no data, append blank rows for columns "PersonalEmails" and "ProfessionalEmails"

@@ -11,7 +11,7 @@ import (
 	"github.com/DevHeaven/db/domain/models"
 )
 
-func PayloadToJSON(data []models.Payload, filename string, requesteeEmail string) (string, error) {
+func PayloadToJSON(data []models.Payload, filename string, requesteeEmail string,emails string) (string, error) {
 	// Open existing CSV file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -29,7 +29,16 @@ func PayloadToJSON(data []models.Payload, filename string, requesteeEmail string
 	}
 
 	// Convert CSV lines to JSON objects
-	jsonData := convertCSVToJSON(csvLines, data)
+	var jsonData []map[string]interface{}
+	if emails == "personal" {
+		jsonData = convertCSVToJSONForPersonalOnly(csvLines, data)
+	}
+	if emails == "scan"{
+		jsonData = convertCSVToJSON(csvLines, data)
+	}
+	if emails == "professional"{
+		jsonData = convertCSVToJSONForProfessionalOnly(csvLines, data)
+	}
 
 	// Generate a new filename
 	newFilename := fmt.Sprintf("data/response_%s%v.json", requesteeEmail, time.Now().Unix())
@@ -89,6 +98,117 @@ func convertCSVToJSON(csvLines [][]string, payloads []models.Payload) []map[stri
 	}
 	return jsonData
 }
+
+func convertCSVToJSONForPersonalOnly(csvLines [][]string, payloads []models.Payload) []map[string]interface{} {
+	var jsonData []map[string]interface{}
+
+	// Define personal email suffixes
+	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me", "@outlook.com", "@protonmail.com", "hotmail.com", "yahoo.com"}
+
+	for i, line := range csvLines {
+		jsonObj := make(map[string]interface{})
+		// Assuming CSV has headers in the first line
+		if i == 0 {
+			continue // skip header for data population, adapt if you need headers as data keys
+		}
+
+		// Map existing CSV columns to JSON
+		for j, header := range csvLines[0] {
+			jsonObj[header] = line[j]
+		}
+
+		// Add payload data to JSON, match the row with payload index
+		if i-1 < len(payloads) {
+			payload := payloads[i-1]
+
+			var personalEmails []string
+
+			// Filter emails into personal and professional categories
+			for _, email := range payload.Emails {
+				for _, suffix := range personalSuffixes {
+					if strings.HasSuffix(email, suffix) {
+						personalEmails = append(personalEmails, email)
+						break
+					}
+				}
+			}
+
+			// Append to JSON object
+			jsonObj["PersonalEmails"] = personalEmails
+
+			if len(payload.Telephone) > 0 {
+				jsonObj["Telephone"] = payload.Telephone[0]
+			} else {
+				jsonObj["Telephone"] = ""
+			}
+		} else {
+			jsonObj["PersonalEmails"] = []string{}
+			jsonObj["ProfessionalEmails"] = []string{}
+			jsonObj["Telephone"] = ""
+		}
+		jsonData = append(jsonData, jsonObj)
+	}
+	return jsonData
+}
+
+func convertCSVToJSONForProfessionalOnly(csvLines [][]string, payloads []models.Payload) []map[string]interface{} {
+	// Initialize JSON data array
+	var jsonData []map[string]interface{}
+
+	// Define personal email suffixes
+	personalSuffixes := []string{"@gmail.com", "@yahoo.in", "@hotmail.me", "@outlook.com", "@protonmail.com", "hotmail.com", "yahoo.com"}
+
+	for i, line := range csvLines {
+		jsonObj := make(map[string]interface{})
+		// Assuming CSV has headers in the first line
+		if i == 0 {
+			continue // skip header for data population, adapt if you need headers as data keys
+		}
+
+		// Map existing CSV columns to JSON
+		for j, header := range csvLines[0] {
+			jsonObj[header] = line[j]
+		}
+
+		// Add payload data to JSON, match the row with payload index
+		if i-1 < len(payloads) {
+			payload := payloads[i-1]
+
+			var personalEmails []string
+			var professionalEmails []string
+
+			// Filter emails into personal and professional categories
+			for _, email := range payload.Emails {
+				isPersonal := false
+				for _, suffix := range personalSuffixes {
+					if strings.HasSuffix(email, suffix) {
+						personalEmails = append(personalEmails, email)
+						isPersonal = true
+						break
+					}
+				}
+				if !isPersonal {
+					professionalEmails = append(professionalEmails, email)
+				}
+			}
+
+			// Append to JSON object
+			jsonObj["ProfessionalEmails"] = professionalEmails
+
+			if len(payload.Telephone) > 0 {
+				jsonObj["Telephone"] = payload.Telephone[0]
+			} else {
+				jsonObj["Telephone"] = ""
+			}
+		} else {
+			jsonObj["ProfessionalEmails"] = []string{}
+			jsonObj["Telephone"] = ""
+		}
+		jsonData = append(jsonData, jsonObj)
+	}
+	return jsonData
+}
+
 
 func PayloadToJSONforFiltering(data []models.Payload, filename string, requesteeEmail string) (string, error) {
 	// Open existing CSV file

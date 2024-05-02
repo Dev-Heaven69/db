@@ -72,7 +72,6 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 
 	queries := []Query{
 		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "pep1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 		{Collection: "use2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
@@ -142,12 +141,11 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, first
 	emailRegex := bson.D{{"e", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}
 
     queries := []Query{
+        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "pep1", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
     }
 
     var wg sync.WaitGroup
@@ -203,13 +201,12 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, first
     }
 }
 
-func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string) (models.Payload, error) {
+func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
     // Using $not with $regex to exclude specified email domains
     professionalEmailsRegex := bson.D{{"e", bson.D{{"$not", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}}}
 
     queries := []Query{
         {Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "pep1", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
         {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
