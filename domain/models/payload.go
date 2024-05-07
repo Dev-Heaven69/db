@@ -5,11 +5,6 @@ type Pep1Response struct {
 	Telephone []string `bson:"t,omitempty"`
 }
 
-// type UseResponse struct {
-// 	Emails    []string `json:"emails" bson:"emails,omitempty"`
-// 	Telephone []string `json:"phone_numbers" bson:"phone_numbers,omitempty"`
-// }
-
 type Payload struct {
 	Emails    []string `json:"emails"`
 	Telephone []string `json:"phoneNumbers"`

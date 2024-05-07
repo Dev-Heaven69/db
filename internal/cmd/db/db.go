@@ -102,6 +102,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 			}
 
 			if err != nil {
+                fmt.Println("error occured in collection: ",query.Collection, " while finding document: ", err)
 				errChan <- err
 				return
 			}
@@ -124,6 +125,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 			case err := <-errChan:
 				log.Fatal("Error finding document: ", err)
 			case result := <-resultChan:
+                // fmt.Println("result: ", result)
 				resp = models.Payload(result)
 				return
 			case <-doneChan:
@@ -170,6 +172,7 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, first
             }
 
             if err != nil {
+                fmt.Println("error occured in collection: ",query.Collection, " while finding document: ", err)
                 errChan <- err
                 return
             }
