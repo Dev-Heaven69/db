@@ -78,7 +78,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
         {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
 
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup  
 	resultChan := make(chan models.Pep1Response)
 	errChan := make(chan error)
 	doneChan := make(chan bool)
@@ -96,7 +96,6 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 			if err == mongo.ErrNoDocuments {
 				mu.Lock()
 				noDataCounter++
-				// fmt.Println(noDataCounter)
 				mu.Unlock()
 				return
 			}
@@ -112,11 +111,9 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 		}(q)
 	}
 
-	// Waiting for routines to finish
 	go func() {
 		wg.Wait()
 		close(doneChan)
-		// wg.Done()
 	}()
 
 	func() {
@@ -125,7 +122,6 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 			case err := <-errChan:
 				log.Fatal("Error finding document: ", err)
 			case result := <-resultChan:
-                // fmt.Println("result: ", result)
 				resp = models.Payload(result)
 				return
 			case <-doneChan:
