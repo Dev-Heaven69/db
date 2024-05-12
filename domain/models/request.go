@@ -22,6 +22,7 @@ type Request struct {
 	ResponseType ResponseType `form:"responseType" binding:"required"`
 	DiscordUsername string `form:"discordUsername" binding:"required"`
 	Email Email `form:"email" binding:"required"`
+	ResponseFormat string `form:"responseFormat" binding:"required"`
 }
 
 type ApiResponse struct {
@@ -31,4 +32,13 @@ type ApiResponse struct {
 
 type ChangeWebhookRequest struct {
 	URL string `json:"url" binding:"required"`
+}
+
+type GetOneByLIIDRequest struct {
+	Liid string `json:"liid" binding:"required"`
+}	
+
+
+type GetMultipleByLIIDRequest struct {
+	Liids []string `json:"liids" binding:"required"`
 }

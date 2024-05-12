@@ -125,3 +125,67 @@ func (r Router) GetBothEmails(c *gin.Context){
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (r Router) GetByLIID(c *gin.Context){
+	var req models.GetOneByLIIDRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := r.Logic.GetByLIID(c,req.Liid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r Router) GetAllByLIID(c *gin.Context){
+	var req models.GetMultipleByLIIDRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := r.Logic.GetMultipleByLIID(c,req.Liids)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r Router) GetPersonalEmailByliid(c *gin.Context){
+	var req models.GetOneByLIIDRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := r.Logic.GetPersonalEmailByliid(c,req.Liid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r Router) GetProfessionalEmailsByliid(c *gin.Context){
+	var req models.GetOneByLIIDRequest
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := r.Logic.GetProfessionalEmailsByliid(c,req.Liid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

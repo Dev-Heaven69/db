@@ -91,7 +91,7 @@ func (l Logic) FindPep1(file *multipart.FileHeader, ctx *gin.Context) ([]models.
 		}
 	}
 
-	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
+	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"),ctx.PostForm("responseFormat"))
 	return resp, nil
 }
 
@@ -173,7 +173,7 @@ func (l Logic) GetPersonalEmail(file *multipart.FileHeader, ctx *gin.Context) ([
 		}
 	}
 
-	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
+	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"),ctx.PostForm("responseFormat"))
 	return resp, nil	
 }
 
@@ -245,7 +245,7 @@ func (l Logic) GetProfessionalEmail(file *multipart.FileHeader, ctx *gin.Context
 		}
 	}
 
-	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
+	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"), ctx.PostForm("responseFormat"))
 	return resp, nil	
 }
 
@@ -313,6 +313,59 @@ func (l Logic) GetBothEmails(file *multipart.FileHeader, ctx *gin.Context) ([]mo
 		}
 	}
 
-	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"))
+	utils.SendFileToWebhook(os.Getenv("WEBHOOK_URL"), filename, ctx.PostForm("email"), ctx.PostForm("discordUsername"),ctx.PostForm("responseFormat"))
 	return resp, nil
+}
+
+func (l Logic) GetByLIID(ctx *gin.Context,liid string) (models.Payload, error) {
+	data, err := l.service.FindInPep1(ctx, liid, "", "", "")
+	if err != nil {
+		return models.Payload{}, err
+	}
+
+	return models.Payload{
+		Emails:    data.Emails,
+		Telephone: data.Telephone,
+	}, nil
+}
+
+func (l Logic) GetMultipleByLIID(ctx *gin.Context,liids []string) ([]models.Payload, error) {
+	var resp []models.Payload
+	for _,liid := range liids {
+		data, err := l.service.FindInPep1(ctx, liid, "", "", "")
+		if err != nil {
+			return nil, err
+		}
+
+		resp = append(resp, models.Payload{
+			Emails:    data.Emails,
+			Telephone: data.Telephone,
+		})
+	}
+
+	return resp, nil
+}
+
+func (l Logic) GetPersonalEmailByliid(ctx *gin.Context,liid string) (models.Payload, error) {
+	data, err := l.service.GetPersonalEmail(ctx, liid, "", "", "")
+	if err != nil {
+		return models.Payload{}, err
+	}
+
+	return models.Payload{
+		Emails:    data.Emails,
+		Telephone: data.Telephone,
+	}, nil
+}
+
+func (l Logic) GetProfessionalEmailsByliid(ctx *gin.Context,liid string) (models.Payload, error) {
+	data, err := l.service.GetProfessionalEmails(ctx, liid, "", "", "")
+	if err != nil {
+		return models.Payload{}, err
+	}
+
+	return models.Payload{
+		Emails:    data.Emails,
+		Telephone: data.Telephone,
+	}, nil
 }

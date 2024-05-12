@@ -42,9 +42,24 @@ func (s *Server) Run() error {
 		s.router.GetBothEmails(ctx)
 	})
 
+	s.Engine.POST("/getbyliid", func(ctx *gin.Context) {
+		s.router.GetByLIID(ctx)
+	})
+
+	s.Engine.POST("/getAllbyliid", func(ctx *gin.Context) {
+		s.router.GetAllByLIID(ctx)
+	})
 
 	s.Engine.POST("/changewebhook", func(ctx *gin.Context) {
 		s.router.ChangeWebhook(ctx)
+	})
+
+	s.Engine.POST("/getPersonalEmailByliid", func(ctx *gin.Context) {
+		s.router.GetPersonalEmailByliid(ctx)
+	})
+
+	s.Engine.POST("/getProfessionalEmailsByliid", func(ctx *gin.Context) {
+		s.router.GetProfessionalEmailsByliid(ctx)
 	})
 
 	return s.Engine.Run(s.port)
