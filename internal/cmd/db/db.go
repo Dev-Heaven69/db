@@ -134,13 +134,9 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, first
 	emailRegex := bson.D{{"e", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}
 
     queries := []Query{
-        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-    }
-
+		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID},emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID},emailRegex[0]}, Projection: bson.D{{"e",1},{"t",1}}},
+	}
     var wg sync.WaitGroup
     resultChan := make(chan models.Pep1Response)
     errChan := make(chan error)
@@ -200,12 +196,9 @@ func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string, 
     professionalEmailsRegex := bson.D{{"e", bson.D{{"$not", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}}}
 
     queries := []Query{
-        {Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use1", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "use2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-    }
+		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID},professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID},professionalEmailsRegex[0]}, Projection: bson.D{{"e",1},{"t",1}}},
+	}
 
 
     var wg sync.WaitGroup
