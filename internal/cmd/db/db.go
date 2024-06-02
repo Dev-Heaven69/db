@@ -66,16 +66,11 @@ func NewMongoRepository(dbUri, dbName string, timeout int) (Storage, error) {
 var nhi int = 0
 
 func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
-	// pep1Data := models.Pep1Response{}
-	// useData := models.UseResponse{}
 	resp := models.Payload{}
 
 	queries := []Query{
 		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "use", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "use1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "use2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-        {Collection: "pep2personal", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e",1},{"t",1}}},
 	}
 
 	var wg sync.WaitGroup  
