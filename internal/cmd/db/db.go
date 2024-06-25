@@ -65,16 +65,16 @@ func NewMongoRepository(dbUri, dbName string, timeout int) (Storage, error) {
 
 var nhi int = 0
 
-func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
+func (s *Storage) ScanDB(ctx context.Context, linkedInID string) (models.Payload, error) {
 	resp := models.Payload{}
 
 	queries := []Query{
 		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e",1},{"t",1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
 
-	var wg sync.WaitGroup  
-	resultChan := make(chan models.Pep1Response)
+	var wg sync.WaitGroup
+	resultChan := make(chan models.DbResponse)
 	errChan := make(chan error)
 	doneChan := make(chan bool)
 
@@ -84,7 +84,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 		go func(query Query) {
 			defer wg.Done()
 			c := s.client.Database(s.dbName).Collection(query.Collection)
-			var result models.Pep1Response
+			var result models.DbResponse
 			err := c.FindOne(ctx, query.Filter, options.FindOne().SetProjection(query.Projection)).Decode(&result)
 
 			// If no data found, increment counter
@@ -96,7 +96,7 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 			}
 
 			if err != nil {
-                fmt.Println("error occured in collection: ",query.Collection, " while finding document: ", err)
+				fmt.Println("error occured in collection: ", query.Collection, " while finding document: ", err)
 				errChan <- err
 				return
 			}
@@ -130,122 +130,121 @@ func (s *Storage) FindInPep1(ctx context.Context, linkedInID string, firstname s
 	return resp, nil
 }
 
-func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
+func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string) (models.Payload, error) {
 	emailRegex := bson.D{{"e", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}
 
-    queries := []Query{
-		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID},emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID},emailRegex[0]}, Projection: bson.D{{"e",1},{"t",1}}},
+	queries := []Query{
+		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}, emailRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
-    var wg sync.WaitGroup
-    resultChan := make(chan models.Pep1Response)
-    errChan := make(chan error)
-    doneChan := make(chan bool)
+	var wg sync.WaitGroup
+	resultChan := make(chan models.DbResponse)
+	errChan := make(chan error)
+	doneChan := make(chan bool)
 
-    for _, q := range queries {
-        wg.Add(1)
+	for _, q := range queries {
+		wg.Add(1)
 
-        go func(query Query) {
-            defer wg.Done()
-            c := s.client.Database(s.dbName).Collection(query.Collection)
-            var result models.Pep1Response
-            err := c.FindOne(ctx, query.Filter, options.FindOne().SetProjection(query.Projection)).Decode(&result)
+		go func(query Query) {
+			defer wg.Done()
+			c := s.client.Database(s.dbName).Collection(query.Collection)
+			var result models.DbResponse
+			err := c.FindOne(ctx, query.Filter, options.FindOne().SetProjection(query.Projection)).Decode(&result)
 
-            if err == mongo.ErrNoDocuments {
-                mu.Lock()
-                noDataCounter++
-                mu.Unlock()
-                return
-            }
+			if err == mongo.ErrNoDocuments {
+				mu.Lock()
+				noDataCounter++
+				mu.Unlock()
+				return
+			}
 
-            if err != nil {
-                fmt.Println("error occured in collection: ",query.Collection, " while finding document: ", err)
-                errChan <- err
-                return
-            }
+			if err != nil {
+				fmt.Println("error occured in collection: ", query.Collection, " while finding document: ", err)
+				errChan <- err
+				return
+			}
 
-            resultChan <- result
-            doneChan <- true
-        }(q)
-    }
+			resultChan <- result
+			doneChan <- true
+		}(q)
+	}
 
-    // Waiting for routines to finish
-    go func() {
-        wg.Wait()
-        close(doneChan)
-    }()
+	// Waiting for routines to finish
+	go func() {
+		wg.Wait()
+		close(doneChan)
+	}()
 
-    // Blocking main thread to handle results and errors
-    for {
-        select {
-        case err := <-errChan:
-            return models.Payload{}, err
-        case result := <-resultChan:
-            return models.Payload(result), nil
-        case <-doneChan:
-            if len(resultChan) == 0 {
-                return models.Payload{}, fmt.Errorf("no personal emails found")
-            }
-            continue // Continue waiting until a result is available or all operations are completed
-        }
-    }
+	// Blocking main thread to handle results and errors
+	for {
+		select {
+		case err := <-errChan:
+			return models.Payload{}, err
+		case result := <-resultChan:
+			return models.Payload(result), nil
+		case <-doneChan:
+			if len(resultChan) == 0 {
+				return models.Payload{}, fmt.Errorf("no personal emails found")
+			}
+			continue // Continue waiting until a result is available or all operations are completed
+		}
+	}
 }
 
-func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string, firstname string, lastname string, domain string) (models.Payload, error) {
-    // Using $not with $regex to exclude specified email domains
-    professionalEmailsRegex := bson.D{{"e", bson.D{{"$not", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}}}
+func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string) (models.Payload, error) {
+	// Using $not with $regex to exclude specified email domains
+	professionalEmailsRegex := bson.D{{"e", bson.D{{"$not", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}}}
 
-    queries := []Query{
-		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID},professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID},professionalEmailsRegex[0]}, Projection: bson.D{{"e",1},{"t",1}}},
+	queries := []Query{
+		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}, professionalEmailsRegex[0]}, Projection: bson.D{{"e", 1}, {"t", 1}}},
 	}
 
+	var wg sync.WaitGroup
+	resultChan := make(chan models.DbResponse)
+	errChan := make(chan error)
+	doneChan := make(chan bool)
 
-    var wg sync.WaitGroup
-    resultChan := make(chan models.Pep1Response)
-    errChan := make(chan error)
-    doneChan := make(chan bool)
+	for _, q := range queries {
+		wg.Add(1)
 
-    for _, q := range queries {
-        wg.Add(1)
+		go func(query Query) {
+			defer wg.Done()
+			c := s.client.Database(s.dbName).Collection(query.Collection)
+			var result models.DbResponse
+			err := c.FindOne(ctx, query.Filter, options.FindOne().SetProjection(query.Projection)).Decode(&result)
 
-        go func(query Query) {
-            defer wg.Done()
-            c := s.client.Database(s.dbName).Collection(query.Collection)
-            var result models.Pep1Response
-            err := c.FindOne(ctx, query.Filter, options.FindOne().SetProjection(query.Projection)).Decode(&result)
+			if err == mongo.ErrNoDocuments {
+				return
+			}
 
-            if err == mongo.ErrNoDocuments {
-                return
-            }
+			if err != nil {
+				errChan <- err
+				return
+			}
 
-            if err != nil {
-                errChan <- err
-                return
-            }
+			resultChan <- result
+			doneChan <- true
+		}(q)
+	}
 
-            resultChan <- result
-            doneChan <- true
-        }(q)
-    }
+	// Waiting for routines to finish
+	go func() {
+		wg.Wait()
+		close(doneChan)
+	}()
 
-    // Waiting for routines to finish
-    go func() {
-        wg.Wait()
-        close(doneChan)
-    }()
-
-    for {
-        select {
-        case err := <-errChan:
-            return models.Payload{}, err
-        case result := <-resultChan:
-            return models.Payload(result), nil
-        case <-doneChan:
-            if len(resultChan) == 0 {
-                return models.Payload{}, fmt.Errorf("no emails found that do not match specified domains")
-            }
-            continue
-        }
-    }
+	for {
+		select {
+		case err := <-errChan:
+			return models.Payload{}, err
+		case result := <-resultChan:
+			return models.Payload(result), nil
+		case <-doneChan:
+			if len(resultChan) == 0 {
+				return models.Payload{}, fmt.Errorf("no emails found that do not match specified domains")
+			}
+			continue
+		}
+	}
 }

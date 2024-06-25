@@ -1,6 +1,10 @@
 package middleware
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func CORSmanager(c *gin.Context) {
 	origin := c.GetHeader("Origin")
@@ -11,7 +15,7 @@ func CORSmanager(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if c.Request.Method == "OPTIONS" {
-		c.AbortWithStatus(204)
+		c.AbortWithStatus(http.StatusServiceUnavailable)
 		return
 	}
 

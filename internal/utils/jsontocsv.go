@@ -46,7 +46,7 @@ func PayloadToCSV(data []models.Payload, filename string, requesteeEmail string,
 	// Insert new data at specified position and shift other columns
 	for i, line := range lines {
 		if i == 0 { // For header
-			lines[i] = append(line[:5], append([]string{"Email", "Telephone"}, line[5:]...)...)
+			lines[i] = append(line[:5], append([]string{"Email"}, line[5:]...)...)
 		} else if i-1 < len(csvData) { // For rows
 			lines[i] = append(line[:5], append(csvData[i-1], line[5:]...)...)
 		} else { // For empty json
@@ -84,18 +84,18 @@ func convertPayloadToCSV(data []models.Payload) [][]string {
 	}
 
 	for _, payload := range data {
-		var email, tel string
+		var email string
 		// Check if payload is empty
-		if payload.Emails == nil && payload.Telephone == nil {
+		if payload.Emails == nil {
 			rows = append(rows, []string{"", ""}) // append blanks
 		} else {
 			if len(payload.Emails) > 0 {
 				email = payload.Emails[0]
 			}
-			if len(payload.Telephone) > 0 {
-				tel = payload.Telephone[0]
-			}
-			rows = append(rows, []string{email, tel})
+			// if len(payload.Telephone) > 0 {
+			// 	tel = payload.Telephone[0]
+			// }
+			rows = append(rows, []string{email})
 		}
 	}
 	return rows
