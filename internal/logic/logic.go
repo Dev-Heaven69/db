@@ -76,6 +76,7 @@ func (l Logic) ScanDB(file *multipart.FileHeader, ctx *gin.Context) ([]models.Pa
 		// 	suspect := []string{fields[idx][2], fields[idx][3], fields[idx][16]}
 		// 	_ = append(apidata, suspect)
 		// }
+		fmt.Println("ups")
 		resp = append(resp, models.Payload{
 			Emails:    data.Emails,
 			Telephone: data.Telephone,
