@@ -29,6 +29,8 @@ type CSVFileData struct {
 	PhoneNumbers       []string
 	Liid               []string
 	LinkedInURL        []string
+	PersonalEmails     []string
+	ProfessionalEmails []string
 }
 
 func (l Logic) ScanDB(file *multipart.FileHeader, ctx *gin.Context) ([]models.Payload, error) {
@@ -61,35 +63,19 @@ func (l Logic) ScanDB(file *multipart.FileHeader, ctx *gin.Context) ([]models.Pa
 	}
 
 	var resp []models.Payload
-	// var apidata [][]string
-	// var csvDataStruct CSVFileData
 	for idx := 1; idx < len(fields); idx++ {
-		// fmt.Println(idx)
 		parts := strings.Split(fields[idx][4], "/")
 		id := parts[len(parts)-1]
-		data, err := l.service.ScanDB(ctx, id)
+		data, err := l.service.ScanDB(ctx, id, "liid")
 		if err != nil {
 			return nil, err
 		}
-		// if data.Emails == nil {
 
-		// 	suspect := []string{fields[idx][2], fields[idx][3], fields[idx][16]}
-		// 	_ = append(apidata, suspect)
-		// }
-		fmt.Println("ups")
 		resp = append(resp, models.Payload{
 			Emails:    data.Emails,
 			Telephone: data.Telephone,
 		})
-		//2 3 5 16
 	}
-
-	// fmt.Println("this is apidata",apidata)
-
-	// limiter := rate.NewLimiter(5, 1)
-
-	// datafromAPI := utils.QueryBulkRecords()
-	// fmt.Println("this is datafromAPI", datafromAPI)
 
 	if ctx.PostForm("responseType") == "json" {
 		filename, err = utils.PayloadToJSON(resp, "data/req.csv", ctx.PostForm("email"), "scan")
@@ -155,7 +141,7 @@ func (l Logic) GetPersonalEmail(file *multipart.FileHeader, ctx *gin.Context) ([
 		parts := strings.Split(fields[idx][5], "/")
 		id := parts[len(parts)-1]
 
-		data, err := l.service.ScanDB(ctx, id)
+		data, err := l.service.ScanDB(ctx, id, "liid")
 		if err != nil {
 			return nil, err
 		}
@@ -295,7 +281,7 @@ func (l Logic) GetBothEmails(file *multipart.FileHeader, ctx *gin.Context) ([]mo
 	for idx := 1; idx < len(fields); idx++ {
 		parts := strings.Split(fields[idx][5], "/")
 		id := parts[len(parts)-1]
-		data, err := l.service.ScanDB(ctx, id)
+		data, err := l.service.ScanDB(ctx, id, "liid")
 		if err != nil {
 			return nil, err
 		}
@@ -331,7 +317,7 @@ func (l Logic) GetBothEmails(file *multipart.FileHeader, ctx *gin.Context) ([]mo
 }
 
 func (l Logic) GetByLIID(ctx *gin.Context, liid string) (models.Payload, error) {
-	data, err := l.service.ScanDB(ctx, liid)
+	data, err := l.service.ScanDB(ctx, liid, "liid")
 	if err != nil {
 		return models.Payload{}, err
 	}
@@ -345,7 +331,7 @@ func (l Logic) GetByLIID(ctx *gin.Context, liid string) (models.Payload, error) 
 func (l Logic) GetMultipleByLIID(ctx *gin.Context, liids []string) ([]models.Payload, error) {
 	var resp []models.Payload
 	for _, liid := range liids {
-		data, err := l.service.ScanDB(ctx, liid)
+		data, err := l.service.ScanDB(ctx, liid, "liid")
 		if err != nil {
 			return nil, err
 		}
@@ -383,20 +369,21 @@ func (l Logic) GetProfessionalEmailsByliid(ctx *gin.Context, liid string) (model
 	}, nil
 }
 
-func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (string, error) {
+func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, error) {
 	uploadPath := "./data/"
 	filename := "req.csv"
+	var err error
 
 	filepath := uploadPath + filename
 
-	err := ctx.SaveUploadedFile(file, filepath)
+	err = ctx.SaveUploadedFile(file, filepath)
 	if err != nil {
-		return "", err
+		return CSVFileData{}, err
 	}
 
 	csvFile, err := os.Open(filepath)
 	if err != nil {
-		return "", err
+		return CSVFileData{}, err
 	}
 	defer csvFile.Close()
 
@@ -404,111 +391,17 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (string, error
 
 	headers, err := reader.Read()
 	if err != nil {
-		return "", err
+		return CSVFileData{}, err
 	}
 
-	// for {
-	// 	record, err := reader.Read()
-	// 	if err != nil {
-	// 		break
-	// 	}
-
-	// 	fields = append(fields, record)
-	// }
-	fields,err := reader.ReadAll()
-	if err != nil {	
-		return "", err
+	fields, err := reader.ReadAll()
+	if err != nil {
+		return CSVFileData{}, err
 	}
 
-	// var resp []models.Payload
-	// var apidata [][]string
-	// fmt.Println("fields",len(fields[0]))
 	var csvDataStruct CSVFileData
-	// for idx := 0; idx < len(fields[0]); idx++ {
-	// 	var firstName []string
-	// 	var lastName []string
-	// 	var organizationDomain []string
-	// 	var linkedInURL []string
-	// 	var phoneNumbers []string
-	// 	var liid []string
-	// 	// fmt.Println(idx)
-	// 	// fmt.Println("this is fields", fields[0][idx])
-	// 	if fields[0][idx] == "First Name" {
-	// 		for _, v := range fields {
-	// 			// fmt.Println("this is k",k)
-	// 			firstName = append(firstName, v[idx])
-	// 			// fmt.Println("this is v",v[idx])
-	// 		}
-	// 		csvDataStruct.FirstName = firstName
-	// 	}else{
-	// 		firstName = make([]string, 0)
-	// 		csvDataStruct.FirstName = firstName
-	// 	}
-
-	// 	if fields[0][idx] == "Last Name" {
-			
-	// 		for _, v := range fields {
-	// 			// fmt.Println("this is k",k)
-	// 			// fmt.Println("this is v",v[idx])
-	// 			lastName = append(lastName, v[idx])
-	// 		}
-	// 		csvDataStruct.LastName = lastName
-	// 	}else{
-	// 		lastName = make([]string, 0)
-	// 		csvDataStruct.LastName = lastName
-	// 	}
-
-	// 	if fields[0][idx] == "Organization Domain" {
-			
-	// 		for _, v := range fields {
-	// 			// fmt.Println("this is k",k)
-	// 			// fmt.Println("this is v",v[idx])
-	// 			organizationDomain = append(organizationDomain, v[idx])
-	// 		}
-	// 		csvDataStruct.OrganizationDomain = organizationDomain
-	// 	}else{
-	// 		organizationDomain = make([]string, 0)
-	// 		csvDataStruct.OrganizationDomain = organizationDomain
-	// 	}
-
-	// 	if fields[0][idx] == "Phone Number" {
-	// 		for _, v := range fields {
-	// 			// fmt.Println("this is k",k)
-	// 			// fmt.Println("this is v",v[idx])
-	// 			phoneNumbers = append(phoneNumbers, v[idx])
-	// 		}
-	// 		csvDataStruct.PhoneNumbers = phoneNumbers
-	// 	}else{
-	// 		phoneNumbers = make([]string, 0)
-	// 		csvDataStruct.PhoneNumbers = phoneNumbers
-	// 	}
-
-	// 	if fields[0][idx] == "LinkedIn" {
-	// 		for _, v := range fields {
-	// 			linkedInURL = append(linkedInURL, v[idx])
-	// 			parts := strings.Split(v[idx], "/")
-	// 			liid = append(liid, parts[len(parts)-1])
-	// 			// fmt.Println("this is k",k)
-	// 			// fmt.Println("this is v",v[idx])
-	// 		}
-	// 		csvDataStruct.LinkedInURL = linkedInURL
-	// 		csvDataStruct.Liid = liid
-	// 	}else{
-	// 		linkedInURL = make([]string, 0)
-	// 		liid = make([]string, 0)
-	// 		csvDataStruct.LinkedInURL = linkedInURL
-	// 		csvDataStruct.Liid = liid
-	// 	}
-		// fmt.Println("this is fields",fields[idx][0])
-		// parts := strings.Split(fields[idx][5], "/")
-		// id := parts[len(parts)-1]
-		// data, err := l.service.FindInPep1(ctx, id)
-		// if err != nil {
-		// 	return nil, err
-		// }
-	// }
 	for _, record := range fields {
-		for i , value := range record {
+		for i, value := range record {
 			switch headers[i] {
 			case "First Name":
 				csvDataStruct.FirstName = append(csvDataStruct.FirstName, value)
@@ -522,60 +415,136 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (string, error
 				id := strings.Split(value, "/")
 				csvDataStruct.Liid = append(csvDataStruct.Liid, id[len(id)-1])
 				csvDataStruct.LinkedInURL = append(csvDataStruct.LinkedInURL, value)
+			case "Email":
+				csvDataStruct.Emails = append(csvDataStruct.Emails, value)
 			}
 		}
 	}
-	for i := 0; i < len(fields);i++ {
-		if (len(csvDataStruct.FirstName) > 0) {
-			fmt.Println("this is firstname",csvDataStruct.FirstName[i])
-		}
-		if (len(csvDataStruct.LastName) > 0) {
-			fmt.Println("this is lastname",csvDataStruct.LastName[i])
-		}
-		if (len(csvDataStruct.Liid) > 0) {
-			fmt.Println("this is liid",csvDataStruct.Liid[i])
-		}
-		if (len(csvDataStruct.LinkedInURL) > 0) {
-			fmt.Println("this is linkedinURL",csvDataStruct.LinkedInURL[i])
-		}
-		if (len(csvDataStruct.OrganizationDomain) > 0) {
-			fmt.Println("this is domain",csvDataStruct.OrganizationDomain[i])
-		}
-		if (len(csvDataStruct.PhoneNumbers) > 0) {
-			fmt.Println("pn",csvDataStruct.PhoneNumbers[i])
-		}
-		// fmt.Println(i)
-		// data,err := l.service.FindInPep1()
 
-		// fmt.Println("this is firstname",csvDataStruct.FirstName[0])
-		// fmt.Println("this is lastname",csvDataStruct.LastName[0])
-		// fmt.Println("this is liid",csvDataStruct.Liid[0])
-		// fmt.Println("this is linkedinURL",csvDataStruct.LinkedInURL[0])
-		// fmt.Println("this is domain",csvDataStruct.OrganizationDomain[0])
-		// fmt.Println("pn",csvDataStruct.PhoneNumbers[0])
-		// fmt.Println("emaisl	",csvDataStruct.Emails[0])
-	
+	var resp []models.Payload
+	var data models.Payload
+	if len(csvDataStruct.Liid) > 0 { //unique identifier
+		for idx := 0; idx < len(csvDataStruct.Liid); idx++ {
+			if csvDataStruct.Liid[idx] == "" {
+				if len(csvDataStruct.Emails) > 0 {
+					if csvDataStruct.Emails[idx] != "" {
+						fmt.Println("Emails")
+						data, err = l.service.ScanDB(ctx, csvDataStruct.Emails[idx], "email")
+						if err != nil {
+							return CSVFileData{}, err
+						}
+						resp = append(resp, models.Payload{
+							Emails:    data.Emails,
+							Telephone: data.Telephone,
+						})
+					}
+				}
+				// phone hua for that idx
+				if len(csvDataStruct.PhoneNumbers) > 0 {
+					if csvDataStruct.PhoneNumbers[idx] != "" {
+						data, err = l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone")
+						if err != nil {
+							return CSVFileData{}, err
+						}
+						resp = append(resp, models.Payload{
+							Emails:    data.Emails,
+							Telephone: data.Telephone,
+						})
+					}
+				} else {
+					continue
+				}
+			}
+
+			data, err = l.service.ScanDB(ctx, csvDataStruct.Liid[idx], "liid")
+			if err != nil {
+				return CSVFileData{}, err
+			}
+			resp = append(resp, models.Payload{
+				Emails:    data.Emails,
+				Telephone: data.Telephone,
+			})
+		}
+		for _, v := range resp {
+			for _, email := range v.Emails {
+				// check if email has gmail or yahoo or outlook or hotmail or icloud or aol or protonmail or zoho
+				if strings.Contains(email, "gmail") || strings.Contains(email, "yahoo") || strings.Contains(email, "outlook") || strings.Contains(email, "hotmail") || strings.Contains(email, "icloud") || strings.Contains(email, "aol") || strings.Contains(email, "protonmail") || strings.Contains(email, "zoho") {
+					csvDataStruct.PersonalEmails = append(csvDataStruct.PersonalEmails, email)
+				} else {
+					csvDataStruct.ProfessionalEmails = append(csvDataStruct.ProfessionalEmails, email)
+				}
+			}
+		}
+
+		return csvDataStruct, nil
+
 	}
-	// fmt.Println("=====================================")
-	// fmt.Println("this is firstname",csvDataStruct.FirstName)
-	// fmt.Println("=====================================")
-	
-	// fmt.Println("this is lastname",csvDataStruct.LastName)
-	// fmt.Println("=====================================")
 
-	// fmt.Println("this is liid",csvDataStruct.Liid)
-	// fmt.Println("=====================================")
-	// fmt.Println("this is linkedinURL",csvDataStruct.LinkedInURL)
-	// fmt.Println("=====================================")
-	// fmt.Println("this is domain",csvDataStruct.OrganizationDomain)
-	// fmt.Println("=====================================")
-	// fmt.Println("pn",csvDataStruct.PhoneNumbers)
-	// fmt.Println("=====================================")
-	// fmt.Println("emaisl	",csvDataStruct.Emails)
-	// fmt.Println("=====================================")
+	if len(csvDataStruct.Emails) > 0 {
+		for idx := 0; idx < len(csvDataStruct.Emails); idx++ {
+			if csvDataStruct.Emails[idx] == "" {
+				if len(csvDataStruct.PhoneNumbers) > 0 {
+					if csvDataStruct.PhoneNumbers[idx] != "" {
+						data, err = l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone")
+						if err != nil {
+							return CSVFileData{}, err
+						}
+						resp = append(resp, models.Payload{
+							Emails:    data.Emails,
+							Telephone: data.Telephone,
+						})
+					}
+				} else {
+					continue
+				}
+			}
+			data, err := l.service.ScanDB(ctx, csvDataStruct.Emails[idx], "email")
+			if err != nil {
+				return CSVFileData{}, err
+			}
+			resp = append(resp, models.Payload{
+				Emails:    data.Emails,
+				Telephone: data.Telephone,
+			})
+		}
 
+		for _, v := range resp {
+			for _, email := range v.Emails{
+				if strings.Contains(email, "gmail") || strings.Contains(email, "yahoo") || strings.Contains(email, "outlook") || strings.Contains(email, "hotmail") || strings.Contains(email, "icloud") || strings.Contains(email, "aol") || strings.Contains(email, "protonmail") || strings.Contains(email, "zoho") {
+					csvDataStruct.PersonalEmails = append(csvDataStruct.PersonalEmails, email)
+				} else {
+					csvDataStruct.ProfessionalEmails = append(csvDataStruct.ProfessionalEmails, email)
+				}
+			}
+		}
 
-	
+		return csvDataStruct, nil
+	}
 
-	return "hello world", nil
+	if len(csvDataStruct.PhoneNumbers) > 0 {
+		for idx := 0; idx < len(csvDataStruct.PhoneNumbers); idx++ {
+			data, err := l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone")
+			if err != nil {
+				return CSVFileData{}, err
+			}
+			resp = append(resp, models.Payload{
+				Emails:    data.Emails,
+				Telephone: data.Telephone,
+			})
+		}
+
+		for _, v := range resp {
+			for _, email := range v.Emails {
+				if strings.Contains(email, "gmail") || strings.Contains(email, "yahoo") || strings.Contains(email, "outlook") || strings.Contains(email, "hotmail") || strings.Contains(email, "icloud") || strings.Contains(email, "aol") || strings.Contains(email, "protonmail") || strings.Contains(email, "zoho") {
+					csvDataStruct.PersonalEmails = append(csvDataStruct.PersonalEmails, email)
+				} else {
+					csvDataStruct.ProfessionalEmails = append(csvDataStruct.ProfessionalEmails, email)
+				}
+			}
+		}
+
+		return csvDataStruct, nil
+	}
+
+	return csvDataStruct, nil
 }

@@ -63,7 +63,7 @@ func (s *Server) Run() error {
 		s.router.GetProfessionalEmailsByliid(ctx)
 	})
 	
-	s.Engine.POST("/api/test", func(ctx *gin.Context) {
+	s.Engine.POST("/api/getEmailsFromCsv", func(ctx *gin.Context) {
 		s.router.Test(ctx)
 	})
 

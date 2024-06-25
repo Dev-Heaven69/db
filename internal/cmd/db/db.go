@@ -65,13 +65,37 @@ func NewMongoRepository(dbUri, dbName string, timeout int) (Storage, error) {
 
 var nhi int = 0
 
-func (s *Storage) ScanDB(ctx context.Context, linkedInID string) (models.Payload, error) {
+func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string) (models.Payload, error) {
 	resp := models.Payload{}
+	var queries []Query
 
-	queries := []Query{
-		{Collection: "ap2", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		{Collection: "pe1", Filter: bson.D{{"liid", linkedInID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	if idType == "liid" {
+		fmt.Println("liid")
+		queries = []Query{
+			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		}
 	}
+	
+	if idType == "email" {
+		fmt.Println("email")
+		queries = []Query{
+			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		}
+	}
+
+	if idType == "phone" {
+		fmt.Println("phone")
+		queries = []Query{
+			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+		}
+	}
+
+
+
+
 
 	var wg sync.WaitGroup
 	resultChan := make(chan models.DbResponse)
