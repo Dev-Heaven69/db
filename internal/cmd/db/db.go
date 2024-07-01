@@ -65,37 +65,118 @@ func NewMongoRepository(dbUri, dbName string, timeout int) (Storage, error) {
 
 var nhi int = 0
 
-func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string) (models.Payload, error) {
+func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string,wantedFields map[string]bool) (models.Payload, error) {
 	resp := models.Payload{}
 	var queries []Query
+	var projections bson.D
 
-	if idType == "liid" {
-		fmt.Println("liid")
-		queries = []Query{
-			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	for k, v := range wantedFields {
+		if v{
+			// fmt.Println("dasbhja",k)
+			if k == "PersonalEmail" || k == "ProfessionalEmail" {
+				// fmt.Println("email")
+				// wantedFields["e"] = true
+				// continue
+				// fmt.Println("in the condition",k)
+				if projections.Map()["e"] == 1 {
+					// fmt.Println("email already in projections ", k)
+					continue
+				}
+				projections = append(projections, bson.E{"e", 1})
+			}else{
+				// fmt.Println(k)
+				projections = append(projections, bson.E{k, 1})
+			}
 		}
 	}
+
+	// fmt.Println("projections: ", projections)
+
+	// fmt.Println("projections: ", projections)
+	// unique identifiers liid or email or phone
+	// if wantedFields has linkedin then give code
+	if wantedFields["Organization Name"] || wantedFields["Organization Domain"] { // ap2 and ap3
+		// if wantedFields["Emails"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["Telephone"] || wantedFields["ProfessionalEmail"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["Telephone"] || wantedFields["ProfessionalEmail"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["ProfessionalEmail"] && wantedFields["Telephone"]{
+		if !wantedFields["linkedin"] {	
+			if idType == "liid" {
+				queries = []Query{
+					{Collection: "ap3", Filter: bson.D{{idType,uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{idType,uniqueID}}, Projection: projections},
+				}
+			}
+		}
+		if !wantedFields["e"] {
+			if idType == "email" {
+				queries = []Query{
+					{Collection: "ap3", Filter: bson.D{{"e",uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{"e",uniqueID}}, Projection: projections},
+				}
+			}
+		}
+		if !wantedFields["t"] {
+			if idType == "phone" {
+				queries = []Query{
+					{Collection: "ap3", Filter: bson.D{{"t",uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{"t",uniqueID}}, Projection: projections},
+				}
+			}
+		}
+	}else{ 	// pe1 and ap2
+		if !wantedFields["linkedin"] {
+			if idType == "liid" {
+				queries = []Query{
+					{Collection: "pe1", Filter: bson.D{{idType,uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{idType,uniqueID}}, Projection: projections},
+					{Collection: "ap3", Filter: bson.D{{idType,uniqueID}}, Projection: projections},
+				}
+			}
+		}
+		if !wantedFields["e"] {
+			if idType == "email" {
+				queries = []Query{
+					{Collection: "pe1", Filter: bson.D{{"e",uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{"e",uniqueID}}, Projection: projections},
+					{Collection: "ap3", Filter: bson.D{{"e",uniqueID}}, Projection: projections},
+				}
+			}
+		}
+		if !wantedFields["t"] {
+			if idType == "phone" {
+				queries = []Query{
+					{Collection: "pe1", Filter: bson.D{{"t",uniqueID}}, Projection: projections},
+					{Collection: "ap2", Filter: bson.D{{"t",uniqueID}}, Projection: projections},
+					{Collection: "ap3", Filter: bson.D{{"t",uniqueID}}, Projection: projections},
+				}
+			}
+		}
+	}
+
+
+
+
+	// if idType == "liid" {
+	// 	fmt.Println("liid")
+	// 	queries = []Query{
+	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}, }},
+	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	// 	}
+	// }
 	
-	if idType == "email" {
-		fmt.Println("email")
-		queries = []Query{
-			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		}
-	}
+	// if idType == "email" {
+	// 	fmt.Println("email")
+	// 	queries = []Query{
+	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	// 	}
+	// }
 
-	if idType == "phone" {
-		fmt.Println("phone")
-		queries = []Query{
-			{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-			{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-		}
-	}
-
-
-
-
+	// if idType == "phone" {
+	// 	fmt.Println("phone")
+	// 	queries = []Query{
+	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
+	// 	}
+	// }
 
 	var wg sync.WaitGroup
 	resultChan := make(chan models.DbResponse)
@@ -120,7 +201,7 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string) (m
 			}
 
 			if err != nil {
-				fmt.Println("error occured in collection: ", query.Collection, " while finding document: ", err)
+				fmt.Println("error occured in collection: ", query.Collection, " while finding document: ", err , " ", query)
 				errChan <- err
 				return
 			}
@@ -141,7 +222,15 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string) (m
 			case err := <-errChan:
 				log.Fatal("Error finding document: ", err)
 			case result := <-resultChan:
-				resp = models.Payload(result)
+				resp = models.Payload{
+					Emails: result.Emails,
+					Telephone: result.Telephone,
+					OrganizationDomain: result.OrganizationDomain,
+					OrganizationName: result.OrganizationName,
+					LinkedInUrl: result.LinkedInUrl,
+					FirstName: result.FirstName,
+					LastName: result.LastName,
+				}
 				return
 			case <-doneChan:
 				nhi++
@@ -153,6 +242,7 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string) (m
 
 	return resp, nil
 }
+
 
 func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string) (models.Payload, error) {
 	emailRegex := bson.D{{"e", bson.D{{"$regex", `@(gmail\.com|hotmail\.me|yahoo\.in)$`}}}}
@@ -205,7 +295,10 @@ func (s *Storage) GetPersonalEmail(ctx context.Context, linkedInID string) (mode
 		case err := <-errChan:
 			return models.Payload{}, err
 		case result := <-resultChan:
-			return models.Payload(result), nil
+			return models.Payload{
+				Emails: result.Emails,
+				Telephone: result.Telephone,
+			}, nil
 		case <-doneChan:
 			if len(resultChan) == 0 {
 				return models.Payload{}, fmt.Errorf("no personal emails found")
@@ -263,7 +356,10 @@ func (s *Storage) GetProfessionalEmails(ctx context.Context, linkedInID string) 
 		case err := <-errChan:
 			return models.Payload{}, err
 		case result := <-resultChan:
-			return models.Payload(result), nil
+			return models.Payload{
+				Emails: result.Emails,
+				Telephone: result.Telephone,
+			}, nil
 		case <-doneChan:
 			if len(resultChan) == 0 {
 				return models.Payload{}, fmt.Errorf("no emails found that do not match specified domains")

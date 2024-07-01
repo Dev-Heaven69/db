@@ -8,14 +8,14 @@ import (
 
 type Service interface {
 	// Get a single document from the database
-	ScanDB(ctx context.Context, uniqueID string, idType string) (models.Payload, error)
+	ScanDB(ctx context.Context, uniqueID string, idType string, wantedFields map[string]bool) (models.Payload, error)
 	GetPersonalEmail(ctx context.Context, linkedInID string) (models.Payload, error)
 	GetProfessionalEmails(ctx context.Context, linkedInID string) (models.Payload, error)
 }
 
 type Storage interface {
 	// Get a single document from the database
-	ScanDB(ctx context.Context, uniqueID string, idType string) (models.Payload, error)
+	ScanDB(ctx context.Context, uniqueID string, idType string, wantedFields map[string]bool) (models.Payload, error)
 	GetPersonalEmail(ctx context.Context, linkedInID string) (models.Payload, error)
 	GetProfessionalEmails(ctx context.Context, linkedInID string) (models.Payload, error)
 }
@@ -30,8 +30,8 @@ func NewService(repo Storage) Service {
 	}
 }
 
-func (s *service) ScanDB(ctx context.Context, uniqueID string, idType string) (models.Payload, error) {
-	resp, err := s.repo.ScanDB(ctx, uniqueID, idType)
+func (s *service) ScanDB(ctx context.Context, uniqueID string, idType string, wantedFields map[string]bool) (models.Payload, error) {
+	resp, err := s.repo.ScanDB(ctx, uniqueID, idType, wantedFields)
 	return resp, err
 }
 

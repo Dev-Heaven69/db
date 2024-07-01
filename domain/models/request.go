@@ -25,6 +25,13 @@ type Request struct {
 	ResponseFormat string `form:"responseFormat" binding:"required"`
 }
 
+type ScanRequest struct {
+	CsvFile *multipart.FileHeader `form:"csv" binding:"required"`
+	DiscordUsername string `form:"discordUsername" binding:"required"`
+	Email Email `form:"email" binding:"required"`
+	WantedFields string `form:"wantedFields" binding:"required"`
+}
+
 type ApiResponse struct {
 	State bool `json:"state"`
 	Email string `json:"email"`

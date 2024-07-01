@@ -190,7 +190,7 @@ func (r Router) GetProfessionalEmailsByliid(c *gin.Context) {
 }
 
 func (r Router) Test(c *gin.Context) {
-	var req models.Request
+	var req models.ScanRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
