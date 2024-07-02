@@ -72,31 +72,19 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string,wan
 
 	for k, v := range wantedFields {
 		if v{
-			// fmt.Println("dasbhja",k)
-			if k == "PersonalEmail" || k == "ProfessionalEmail" {
-				// fmt.Println("email")
-				// wantedFields["e"] = true
-				// continue
-				// fmt.Println("in the condition",k)
+			fmt.Println(k, " : boobs")
+			if k == "PersonalEmail" || k == "ProfessionalEmail" || k == "e" {
 				if projections.Map()["e"] == 1 {
-					// fmt.Println("email already in projections ", k)
 					continue
 				}
 				projections = append(projections, bson.E{"e", 1})
 			}else{
-				// fmt.Println(k)
 				projections = append(projections, bson.E{k, 1})
 			}
 		}
 	}
 
-	// fmt.Println("projections: ", projections)
-
-	// fmt.Println("projections: ", projections)
-	// unique identifiers liid or email or phone
-	// if wantedFields has linkedin then give code
 	if wantedFields["Organization Name"] || wantedFields["Organization Domain"] { // ap2 and ap3
-		// if wantedFields["Emails"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["Telephone"] || wantedFields["ProfessionalEmail"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["Telephone"] || wantedFields["ProfessionalEmail"] && wantedFields["Telephone"] || wantedFields["PersonalEmail"] && wantedFields["ProfessionalEmail"] && wantedFields["Telephone"]{
 		if !wantedFields["linkedin"] {	
 			if idType == "liid" {
 				queries = []Query{
@@ -150,33 +138,6 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string,wan
 			}
 		}
 	}
-
-
-
-
-	// if idType == "liid" {
-	// 	fmt.Println("liid")
-	// 	queries = []Query{
-	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}, }},
-	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-	// 	}
-	// }
-	
-	// if idType == "email" {
-	// 	fmt.Println("email")
-	// 	queries = []Query{
-	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-	// 	}
-	// }
-
-	// if idType == "phone" {
-	// 	fmt.Println("phone")
-	// 	queries = []Query{
-	// 		{Collection: "ap2", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-	// 		{Collection: "pe1", Filter: bson.D{{"liid", uniqueID}}, Projection: bson.D{{"e", 1}, {"t", 1}}},
-	// 	}
-	// }
 
 	var wg sync.WaitGroup
 	resultChan := make(chan models.DbResponse)

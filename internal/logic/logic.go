@@ -607,7 +607,6 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 
 		for _, v := range resp {
 			for _, email := range v.Emails {
-				// check if email has gmail or yahoo or outlook or hotmail or icloud or aol or protonmail or zoho
 				if wantedFieldsArr["PersonalEmail"] && wantedFieldsArr["ProfessionalEmail"] {
 					if strings.Contains(email, "gmail") || strings.Contains(email, "yahoo") || strings.Contains(email, "outlook") || strings.Contains(email, "hotmail") || strings.Contains(email, "icloud") || strings.Contains(email, "aol") || strings.Contains(email, "protonmail") || strings.Contains(email, "zoho") {
 						csvDataStruct.PersonalEmails = append(csvDataStruct.PersonalEmails, email)
@@ -651,7 +650,6 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 		}
 
 		for _, respvalue := range resp {
-			// respvalue := v
 			for k, v := range wantedFieldsArr {
 				if v {
 					switch k {
