@@ -72,7 +72,6 @@ func (s *Storage) ScanDB(ctx context.Context, uniqueID string, idType string,wan
 
 	for k, v := range wantedFields {
 		if v{
-			fmt.Println(k, " : boobs")
 			if k == "PersonalEmail" || k == "ProfessionalEmail" || k == "e" {
 				if projections.Map()["e"] == 1 {
 					continue

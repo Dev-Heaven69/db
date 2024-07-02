@@ -19,3 +19,27 @@ type Payload struct {
 	OrganizationDomain string `json:"organizationDomain"`
 	LinkedInUrl string `json:"linkedInUrl"`
 }
+
+type CSVFileData struct {
+	FirstName          []string
+	LastName           []string
+	OrganizationDomain []string
+	OrganizationName   []string
+	Emails             []string
+	PhoneNumbers       []string
+	Liid               []string
+	LinkedInURL        []string
+	PersonalEmails     []string
+	ProfessionalEmails []string
+}
+
+type WantedFields struct {
+	FirstName          bool
+	LastName           bool
+	OrganizationDomain bool
+	PersonalEmail      bool
+	ProfessionalEmail  bool
+	PhoneNumber        bool
+	LinkedIn           bool
+	CompanyName        bool
+}

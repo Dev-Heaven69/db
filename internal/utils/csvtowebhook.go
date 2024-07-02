@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/DevHeaven/db/domain/models"
 )
 
 func SendFileToWebhook(url, filePath, requesteeEmail, discordUsername, responseFormat string) error {
@@ -84,6 +86,21 @@ func SendFileToWebhook(url, filePath, requesteeEmail, discordUsername, responseF
 	} else {
 		return fmt.Errorf("invalid response format")
 	}
+}
+
+func SendResponseToWebhook(url,requesteeEmail, discordUsername string,response models.CSVFileData) error {
+	jsonData, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("failed to marshal records to JSON: %w", err)
+	}
+	request, err := http.NewRequest("POST", url, bytes.NewReader(jsonData))
+	if err != nil {
+		fmt.Println("cannot create request: %w", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-REQUESTEE-EMAIL", requesteeEmail)
+	request.Header.Set("X-DISCORD-USERNAME", discordUsername)
+	return executeRequest(request)
 }
 
 func convertCSVtoJSON(filePath string) ([]byte, error) {

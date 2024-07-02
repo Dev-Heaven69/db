@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/DevHeaven/db/domain/models"
 	"github.com/DevHeaven/db/internal/dbi"
@@ -21,29 +22,6 @@ func ProvideLogic(service dbi.Service) Logic {
 	return Logic{service: service}
 }
 
-type CSVFileData struct {
-	FirstName          []string
-	LastName           []string
-	OrganizationDomain []string
-	OrganizationName   []string
-	Emails             []string
-	PhoneNumbers       []string
-	Liid               []string
-	LinkedInURL        []string
-	PersonalEmails     []string
-	ProfessionalEmails []string
-}
-
-type WantedFields struct {
-	FirstName          bool
-	LastName           bool
-	OrganizationDomain bool
-	PersonalEmail      bool
-	ProfessionalEmail  bool
-	PhoneNumber        bool
-	LinkedIn           bool
-	CompanyName        bool
-}
 
 func (l Logic) ScanDB(file *multipart.FileHeader, ctx *gin.Context) ([]models.Payload, error) {
 	uploadPath := "./data/"
@@ -385,7 +363,7 @@ func (l Logic) GetProfessionalEmailsByliid(ctx *gin.Context, liid string) (model
 	}, nil
 }
 
-func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, error) {
+func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (bool, time.Time, error) {
 	uploadPath := "./data/"
 	filename := "req.csv"
 	var err error
@@ -394,12 +372,12 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 
 	err = ctx.SaveUploadedFile(file, filepath)
 	if err != nil {
-		return CSVFileData{}, err
+		return false,time.Now(), err
 	}
 
 	csvFile, err := os.Open(filepath)
 	if err != nil {
-		return CSVFileData{}, err
+		return false,time.Now(), err
 	}
 	defer csvFile.Close()
 
@@ -407,15 +385,15 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 
 	headers, err := reader.Read()
 	if err != nil {
-		return CSVFileData{}, err
+		return false,time.Now(), err
 	}
 
 	fields, err := reader.ReadAll()
 	if err != nil {
-		return CSVFileData{}, err
+		return false,time.Now(), err
 	}
 
-	var csvDataStruct CSVFileData
+	var csvDataStruct models.CSVFileData
 	for _, record := range fields {
 		for i, value := range record {
 			switch headers[i] {
@@ -461,7 +439,7 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 			wantedFieldsArr["e"] = true
 		}
 	}
-
+	
 	var resp []models.Payload
 	var data models.Payload
 	if len(csvDataStruct.Liid) > 0 { //unique identifier
@@ -472,7 +450,7 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 						fmt.Println("Emails")
 						data, err = l.service.ScanDB(ctx, csvDataStruct.Emails[idx], "email", wantedFieldsArr)
 						if err != nil {
-							return CSVFileData{}, err
+							return false,time.Now(), err
 						}
 						resp = append(resp, models.Payload{
 							Emails:             data.Emails,
@@ -490,7 +468,7 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 					if csvDataStruct.PhoneNumbers[idx] != "" {
 						data, err = l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone", wantedFieldsArr)
 						if err != nil {
-							return CSVFileData{}, err
+							return false,time.Now(), err
 						}
 						resp = append(resp, models.Payload{
 							Emails:             data.Emails,
@@ -509,7 +487,7 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 
 			data, err = l.service.ScanDB(ctx, csvDataStruct.Liid[idx], "liid", wantedFieldsArr)
 			if err != nil {
-				return CSVFileData{}, err
+				return false,time.Now(), err
 			}
 			resp = append(resp, models.Payload{
 				Emails:             data.Emails,
@@ -563,7 +541,12 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 			}
 		}
 
-		return csvDataStruct, nil
+		err = utils.SendResponseToWebhook(os.Getenv("WEBHOOK_URL"), ctx.PostForm("email"), ctx.PostForm("discordUsername"), csvDataStruct)
+		if err != nil {
+			return false,time.Now(), err
+		}
+
+		return true, time.Now() ,nil
 
 	}
 
@@ -574,7 +557,7 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 					if csvDataStruct.PhoneNumbers[idx] != "" {
 						data, err = l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone", wantedFieldsArr)
 						if err != nil {
-							return CSVFileData{}, err
+							return false,time.Now(), err
 						}
 						resp = append(resp, models.Payload{
 							Emails:             data.Emails,
@@ -592,8 +575,9 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 			}
 			data, err := l.service.ScanDB(ctx, csvDataStruct.Emails[idx], "email", wantedFieldsArr)
 			if err != nil {
-				return CSVFileData{}, err
+				return false,time.Now(), err
 			}
+			
 			resp = append(resp, models.Payload{
 				Emails:             data.Emails,
 				Telephone:          data.Telephone,
@@ -629,14 +613,20 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 			}
 		}
 
-		return csvDataStruct, nil
+		err = utils.SendResponseToWebhook(os.Getenv("WEBHOOK_URL"), ctx.PostForm("email"), ctx.PostForm("discordUsername"), csvDataStruct)
+		if err != nil {
+			return false,time.Now(), err
+		}
+		
+
+		return true,  time.Now() ,nil
 	}
 
 	if len(csvDataStruct.PhoneNumbers) > 0 {
 		for idx := 0; idx < len(csvDataStruct.PhoneNumbers); idx++ {
 			data, err := l.service.ScanDB(ctx, csvDataStruct.PhoneNumbers[idx], "phone", wantedFieldsArr)
 			if err != nil {
-				return CSVFileData{}, err
+				return false,time.Now(), err
 			}
 			resp = append(resp, models.Payload{
 				Emails:             data.Emails,
@@ -685,8 +675,14 @@ func (l Logic) Test(file *multipart.FileHeader, ctx *gin.Context) (CSVFileData, 
 			}
 		}
 
-		return csvDataStruct, nil
+		err = utils.SendResponseToWebhook(os.Getenv("WEBHOOK_URL"), ctx.PostForm("email"), ctx.PostForm("discordUsername"), csvDataStruct)
+		if err != nil {
+			return false,time.Now(), err
+		}
+
+		return true, time.Now() , nil
 	}
 
-	return csvDataStruct, nil
+
+	return false, time.Now() , nil
 }

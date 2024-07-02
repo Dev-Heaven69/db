@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/DevHeaven/db/domain/models"
 	"github.com/DevHeaven/db/internal/logic"
@@ -190,6 +191,7 @@ func (r Router) GetProfessionalEmailsByliid(c *gin.Context) {
 }
 
 func (r Router) Test(c *gin.Context) {
+	startingTime := time.Now()
 	var req models.ScanRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -202,11 +204,15 @@ func (r Router) Test(c *gin.Context) {
 		return
 	}
 
-	resp, err := r.Logic.Test(file, c)
+	resp, time, err := r.Logic.Test(file, c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if resp {
+		c.JSON(http.StatusOK, gin.H{"message": "successfull", "total time": time.Sub(startingTime).String()})
+	}else{
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed", "total time": time.Sub(startingTime).String()})
+	}
 
-	c.JSON(http.StatusOK, gin.H{"message": resp})
 }
